@@ -11,6 +11,7 @@ import { NextRequest } from 'next/server';
 import { createAIStream } from '@/lib/ai/client';
 import { buildHemingSystemPrompt } from '@/lib/ai/prompt';
 import type { ZiweiChart } from '@/lib/ziwei/types';
+import { extractIP, trackAI } from '@/lib/tracker';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -29,6 +30,10 @@ export async function POST(request: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
       });
     }
+
+    // 记录 AI 调用（合盘）
+    const ip = extractIP(request);
+    trackAI(ip, 'heming'); // fire-and-forget
 
     const systemPrompt = buildHemingSystemPrompt(body.chartA, body.chartB);
 

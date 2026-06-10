@@ -3,6 +3,8 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ZiweiChart, Palace } from '@/lib/ziwei/types';
 import type { TimeView } from './TimeNav';
+import { isLimitReached, incrementUsage } from '@/lib/usage';
+import PaywallModal from '@/components/PaywallModal';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -193,6 +195,7 @@ export default function InsightPanel({ chart, selectedPalace, selectedSiHua }: I
   const lastPalaceBranch = useRef<number | undefined>(undefined);
   const lastSiHuaKey = useRef<string | undefined>(undefined);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [paywallOpen, setPaywallOpen] = useState(false);
 
   // Keep refs in sync
   useEffect(() => { messagesRef.current = messages; }, [messages]);
@@ -319,11 +322,17 @@ ${selectedSiHua.starName}化${selectedSiHua.siHua}落在【${palaceName}】，�
 
   const sendMessage = (text: string, hidden = false) => {
     if (!text.trim() || loadingRef.current) return;
+
+    // 支付功能关闭时跳过次数限制，始终免费使用
+    if (process.env.NEXT_PUBLIC_ENABLE_PAY !== 'false' && isLimitReached()) {
+      setPaywallOpen(true);
+      return;
+    }
+
     loadingRef.current = true;
     setLoading(true);
 
     const userMsg: Message = { role: 'user', content: text, hidden };
-    // Capture current messages synchronously via ref (avoids stale closure)
     const apiMessages = [...messagesRef.current, userMsg].map(m => ({
       role: m.role,
       content: m.content,
@@ -331,6 +340,7 @@ ${selectedSiHua.starName}化${selectedSiHua.siHua}落在【${palaceName}】，�
 
     setMessages(prev => [...prev, userMsg]);
     setInput('');
+    incrementUsage();
     streamResponse(apiMessages);
   };
 
@@ -345,7 +355,8 @@ ${selectedSiHua.starName}化${selectedSiHua.siHua}落在【${palaceName}】，�
   };
 
   return (
-    <div className="flex flex-col h-full rounded-xl overflow-hidden card-glass">
+    <>
+      <div className="flex flex-col h-full rounded-xl overflow-hidden card-glass">
 
       {/* ── Topic buttons ── */}
       <div className="flex-shrink-0 px-2 pt-2.5 pb-2" style={{ borderBottom: '1px solid var(--t-border)' }}>
@@ -463,5 +474,11 @@ ${selectedSiHua.starName}化${selectedSiHua.siHua}落在【${palaceName}】，�
       </div>
 
     </div>
+
+      {/* 付费解锁弹窗（支付功能关闭时隐藏） */}
+      {process.env.NEXT_PUBLIC_ENABLE_PAY !== 'false' && (
+        <PaywallModal open={paywallOpen} onClose={() => setPaywallOpen(false)} />
+      )}
+    </>
   );
 }

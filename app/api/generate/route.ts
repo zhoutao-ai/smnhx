@@ -8,12 +8,12 @@
 import { NextResponse } from 'next/server';
 import { generateChart } from '@/lib/ziwei/algorithm';
 import type { BirthInfo } from '@/lib/ziwei/types';
+import { extractIP, trackChart } from '@/lib/tracker';
 
 export async function POST(request: Request) {
   try {
     const body: BirthInfo = await request.json();
 
-    // 基础校验
     if (!body.year || !body.month || !body.day || body.hour === undefined || !body.gender) {
       return NextResponse.json(
         { error: '缺少必填字段：year, month, day, hour, gender' },
@@ -22,6 +22,11 @@ export async function POST(request: Request) {
     }
 
     const chart = generateChart(body);
+
+    // 记录排盘
+    const ip = extractIP(request);
+    trackChart(ip); // fire-and-forget
+
     return NextResponse.json(chart);
   } catch (e) {
     const message = e instanceof Error ? e.message : '命盘生成失败';
