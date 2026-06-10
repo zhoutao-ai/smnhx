@@ -30,13 +30,15 @@ export function middleware(request: NextRequest) {
     const trackUrl = new URL('/api/track/visit', request.url);
     trackUrl.searchParams.set('path', pathname);
 
-    // 传递原始请求头中的 IP 信息
+    // 传递原始 IP（用自定义头避免 Vercel 覆盖 x-forwarded-for）
+    const originalIP =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+      request.headers.get('x-real-ip') ??
+      '127.0.0.1';
+
     fetch(trackUrl.toString(), {
       method: 'POST',
-      headers: {
-        'x-forwarded-for': request.headers.get('x-forwarded-for') ?? '',
-        'x-real-ip': request.headers.get('x-real-ip') ?? '',
-      },
+      headers: { 'x-original-ip': originalIP },
     }).catch(() => {
       // 静默失败，不影响页面加载
     });

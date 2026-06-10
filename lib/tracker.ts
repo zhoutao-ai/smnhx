@@ -14,7 +14,10 @@ import { sql } from '@/lib/db/index';
 /** 从请求头提取客户端 IP */
 export function extractIP(request: Request): string {
   const headers = request.headers;
+  // x-original-ip: middleware 传递的自定义头（避免 Vercel 覆盖 x-forwarded-for）
+  // x-forwarded-for: 标准代理头（直接访问 API 时使用）
   return (
+    headers.get('x-original-ip') ??
     headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
     headers.get('x-real-ip') ??
     '127.0.0.1'
