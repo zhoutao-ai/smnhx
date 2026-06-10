@@ -58,6 +58,70 @@
   --r-pill:999px;
 }
 
+/* ─── 霜蓝主题（Frost）── 冷调冰蓝色 ────────────────────── */
+[data-theme="frost"] {
+  --bg-0: #f0f4f8;
+  --bg-1: #e4ebf2;
+  --bg-2: #d6e0ea;
+  --bg-inv: #1a2a3a;
+
+  --tx-0: #1a2430;
+  --tx-1: #2a3440;
+  --tx-2: #4a5a6a;
+  --tx-3: #7a8a9a;
+  --tx-inv: #f0f4f8;
+  --tx-inv2: rgba(240,244,248,0.7);
+
+  --ac:     #4a8ac0;
+  --ac-dim: #68a8dc;
+  --ac-bg:  rgba(74,138,192,0.08);
+  --ac-bdr: rgba(74,138,192,0.28);
+
+  --bdr:      rgba(100,140,180,0.10);
+  --bdr-med:  rgba(100,140,180,0.16);
+  --bdr-heavy:rgba(100,140,180,0.24);
+
+  --sh-xs: 0 1px 2px rgba(60,100,140,0.06);
+  --sh-sm: 0 2px 8px rgba(60,100,140,0.08), 0 1px 3px rgba(60,100,140,0.05);
+  --sh-md: 0 4px 20px rgba(60,100,140,0.10), 0 2px 6px rgba(60,100,140,0.06);
+  --sh-lg: 0 12px 40px rgba(60,100,140,0.12), 0 4px 12px rgba(60,100,140,0.08);
+
+  --bg-card: #f8fafc;
+  --bg-page: #f0f4f8;
+}
+
+/* ─── 墨玉主题（Jade）── 深青玉色 ────────────────────────── */
+[data-theme="jade"] {
+  --bg-0: #0a1210;
+  --bg-1: #0f1a18;
+  --bg-2: #162420;
+  --bg-inv: #e8f0ec;
+
+  --tx-0: #e0f0e8;
+  --tx-1: #d4e8e0;
+  --tx-2: #8ab8a0;
+  --tx-3: #5a8870;
+  --tx-inv: #0a1210;
+  --tx-inv2: rgba(10,18,16,0.65);
+
+  --ac:     #4db88a;
+  --ac-dim: #6dd8a8;
+  --ac-bg:  rgba(77,184,138,0.10);
+  --ac-bdr: rgba(77,184,138,0.25);
+
+  --bdr:      rgba(255,255,255,0.06);
+  --bdr-med:  rgba(255,255,255,0.10);
+  --bdr-heavy:rgba(255,255,255,0.18);
+
+  --sh-xs: 0 1px 2px rgba(0,0,0,0.3);
+  --sh-sm: 0 2px 8px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
+  --sh-md: 0 4px 20px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.35);
+  --sh-lg: 0 12px 40px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
+
+  --bg-card: rgba(255,255,255,0.03);
+  --bg-page: #0a1210;
+}
+
 /* ─── 暗色模式 Token 覆盖 ──────────────────────────────── */
 [data-theme="dark"] {
   --bg-0: #020810;
@@ -313,6 +377,12 @@ body {
 }
 .grad-text-light {
   background-image: linear-gradient(160deg, #6a4206 0%, #9a6a10 40%, #6a4206 70%, #885010 100%);
+}
+.grad-text-frost {
+  background-image: linear-gradient(160deg, #3a6a9a 0%, #5a9ad8 40%, #3a6a9a 70%, #68a8dc 100%);
+}
+.grad-text-jade {
+  background-image: linear-gradient(160deg, #3d8a6a 0%, #5dd8a0 40%, #3d8a6a 70%, #6dd8a8 100%);
 }
 
 /* ─── 命盘工作台响应式 ─────────────────────────────────── */

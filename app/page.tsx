@@ -36,45 +36,32 @@ function WeakBoundary({ line }: { line: string }) {
 }
 
 // ─── 主题切换按钮 ────────────────────────────────────────
+const THEME_ICONS: Record<string, string> = {
+  dark: '🌙',
+  light: '☀️',
+  frost: '❄️',
+  jade: '🪬',
+};
+
 function ThemeToggle() {
-  const { theme, toggle } = useTheme();
-  const isDark = theme === 'dark';
+  const { theme, toggle, themeLabels } = useTheme();
+
   return (
     <motion.button
       onClick={toggle}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.93 }}
-      aria-label={isDark ? '切换亮色主题' : '切换暗色主题'}
-      className="flex items-center gap-2 px-3 py-1.5 rounded-full border"
+      aria-label={`当前主题：${themeLabels[theme]}，点击切换`}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-medium tracking-wide select-none"
       style={{
-        borderColor: isDark ? 'rgba(212,168,67,0.3)' : 'rgba(140,100,20,0.35)',
-        background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,252,242,0.85)',
-        transition: 'background 0.35s ease, border-color 0.35s ease',
+        borderColor: 'var(--ac-bdr)',
+        background: 'var(--bg-card)',
+        color: 'var(--ac)',
+        transition: 'background 0.35s ease, border-color 0.35s ease, color 0.35s ease',
       }}
     >
-      <div className="relative w-10 h-5 rounded-full flex-shrink-0"
-        style={{
-          background: isDark ? 'rgba(12,24,64,0.95)' : 'rgba(230,195,80,0.55)',
-          transition: 'background 0.35s ease',
-        }}>
-        <motion.div
-          animate={{ x: isDark ? 2 : 22 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-          className="absolute top-1 w-3.5 h-3.5 rounded-full"
-          style={{
-            background: isDark
-              ? 'linear-gradient(135deg, #b8a050, #e8d090)'
-              : 'linear-gradient(135deg, #e89010, #f8d050)',
-          }}
-        />
-      </div>
-      <span className="text-[11px] font-medium tracking-wide select-none"
-        style={{
-          color: isDark ? 'rgba(212,180,100,0.85)' : 'rgba(110,72,8,0.8)',
-          transition: 'color 0.35s ease',
-        }}>
-        {isDark ? '暗色' : '亮色'}
-      </span>
+      <span style={{ fontSize: '13px' }}>{THEME_ICONS[theme] ?? ''}</span>
+      <span>{themeLabels[theme] ?? theme}</span>
     </motion.button>
   );
 }
@@ -199,53 +186,173 @@ const NI_TEACHINGS = [
 ];
 
 // ─── 主题色彩 helper ─────────────────────────────────────
+type ColorPalette = Record<string, string>;
+
+const PALETTES: Record<Theme, ColorPalette> = {
+  dark: {
+    bgBase: '#020810',
+    heroGradient: 'linear-gradient(to bottom, #020810 0%, #020810 6%, #030a18 22%, #0d0820 40%, #0a0618 68%, #030a18 86%, #020810 100%)',
+    navBg: '#020810',
+    navBorder: 'rgba(255,255,255,0.05)',
+    goldGrad: 'linear-gradient(160deg,#c8993a 0%,#f0d070 40%,#c8993a 70%,#f0c755 100%)',
+    goldSolid: '#d4a843',
+    goldLine: 'rgba(212,168,67,0.4)',
+    tagText: 'rgba(212,168,67,0.6)',
+    textPrimary: '#e8eef6',
+    textSecond: '#b8c6df',
+    textMuted: '#9db0d0',
+    textFaint: 'rgba(240,246,255,0.56)',
+    accent: '#3a78d4',
+    accentSoft: 'rgba(58,120,212,0.18)',
+    cardBg: 'rgba(255,255,255,0.05)',
+    cardBorder: 'rgba(255,255,255,0.10)',
+    cardShadow: '0 4px 32px rgba(0,0,0,0.5)',
+    featureBg: 'rgba(255,255,255,0.04)',
+    featureBord: 'rgba(255,255,255,0.08)',
+    glowTint: 'rgba(212,168,67,0.07)',
+    glowBlue: 'rgba(40,80,160,0.12)',
+    glowPurple: 'rgba(120,50,180,0.08)',
+    niBg: 'rgba(255,255,255,0.04)',
+    niBorder: 'rgba(212,168,67,0.2)',
+    niDivider: 'rgba(255,255,255,0.08)',
+    niCardBg: 'rgba(255,255,255,0.04)',
+    niCardBord: 'rgba(255,255,255,0.08)',
+    niCardShadow: '0 2px 20px rgba(0,0,0,0.4)',
+    starBg: 'rgba(255,255,255,0.04)',
+    starBorder: 'rgba(212,168,67,0.22)',
+    starText: 'rgba(212,168,67,0.7)',
+    ctaBg: 'linear-gradient(135deg,#b8892a,#f0d070,#b8892a)',
+    ctaText: '#08080a',
+    footerText: 'rgba(255,255,255,0.08)',
+    scrollLine: 'rgba(212,168,67,0.3)',
+    scrollText: 'rgba(255,255,255,0.12)',
+    altSection: 'rgba(255,255,255,0.02)',
+    quoteBg: 'rgba(212,168,67,0.04)',
+  },
+  light: {
+    bgBase: '#f5efe0',
+    heroGradient: 'linear-gradient(to bottom, #f5efe0 0%, #f5efe0 6%, #c08055 18%, #6a2810 32%, #1e0a02 50%, #1e0a02 70%, #6a2810 84%, #f5efe0 100%)',
+    navBg: '#f5efe0',
+    navBorder: 'rgba(160,120,30,0.15)',
+    goldGrad: 'linear-gradient(160deg,#6a4206 0%,#9a6a10 40%,#6a4206 70%,#885010 100%)',
+    goldSolid: '#8b6410',
+    goldLine: 'rgba(140,100,20,0.4)',
+    tagText: 'rgba(120,80,10,0.65)',
+    textPrimary: '#1a1d24',
+    textSecond: '#3a3f4a',
+    textMuted: '#5a6275',
+    textFaint: '#9da4b3',
+    accent: '#3a5a82',
+    accentSoft: 'rgba(58,90,130,0.10)',
+    cardBg: 'rgba(255,255,255,0.88)',
+    cardBorder: 'rgba(200,160,60,0.25)',
+    cardShadow: '0 4px 24px rgba(140,100,20,0.12)',
+    featureBg: 'rgba(255,255,255,0.75)',
+    featureBord: 'rgba(200,160,60,0.2)',
+    glowTint: 'rgba(180,140,40,0.06)',
+    glowBlue: 'rgba(58,90,130,0.06)',
+    glowPurple: 'rgba(96,80,140,0.04)',
+    niBg: 'rgba(255,255,255,0.8)',
+    niBorder: 'rgba(180,130,40,0.25)',
+    niDivider: 'rgba(180,130,40,0.12)',
+    niCardBg: 'rgba(255,255,255,0.9)',
+    niCardBord: 'rgba(200,160,60,0.2)',
+    niCardShadow: '0 2px 16px rgba(140,100,20,0.1)',
+    starBg: 'rgba(255,255,255,0.7)',
+    starBorder: 'rgba(160,120,30,0.3)',
+    starText: 'rgba(120,80,10,0.7)',
+    ctaBg: 'linear-gradient(135deg,#6a4206,#9a6810,#6a4206)',
+    ctaText: '#f8f3e8',
+    footerText: '#d0b878',
+    scrollLine: 'rgba(140,100,20,0.3)',
+    scrollText: '#c0a870',
+    altSection: 'rgba(255,255,255,0.4)',
+    quoteBg: 'rgba(255,255,255,0.9)',
+  },
+  frost: {
+    bgBase: '#f0f4f8',
+    heroGradient: 'linear-gradient(to bottom, #f0f4f8 0%, #f0f4f8 6%, #8aaccc 18%, #3a6088 32%, #0a1a2a 50%, #0a1a2a 70%, #3a6088 84%, #f0f4f8 100%)',
+    navBg: '#f0f4f8',
+    navBorder: 'rgba(100,140,180,0.18)',
+    goldGrad: 'linear-gradient(160deg,#3a6a9a 0%,#5a9ad8 40%,#3a6a9a 70%,#4a8ac8 100%)',
+    goldSolid: '#4a8ac0',
+    goldLine: 'rgba(74,138,192,0.4)',
+    tagText: 'rgba(60,110,160,0.65)',
+    textPrimary: '#1a2430',
+    textSecond: '#3a4a5a',
+    textMuted: '#5a6a7a',
+    textFaint: '#8a9aaa',
+    accent: '#3a78d4',
+    accentSoft: 'rgba(58,120,212,0.10)',
+    cardBg: 'rgba(255,255,255,0.88)',
+    cardBorder: 'rgba(120,160,200,0.25)',
+    cardShadow: '0 4px 24px rgba(60,100,140,0.10)',
+    featureBg: 'rgba(255,255,255,0.75)',
+    featureBord: 'rgba(120,160,200,0.2)',
+    glowTint: 'rgba(74,138,192,0.06)',
+    glowBlue: 'rgba(58,120,212,0.08)',
+    glowPurple: 'rgba(80,100,160,0.05)',
+    niBg: 'rgba(255,255,255,0.8)',
+    niBorder: 'rgba(120,160,200,0.22)',
+    niDivider: 'rgba(120,160,200,0.12)',
+    niCardBg: 'rgba(255,255,255,0.9)',
+    niCardBord: 'rgba(120,160,200,0.18)',
+    niCardShadow: '0 2px 16px rgba(60,100,140,0.08)',
+    starBg: 'rgba(255,255,255,0.7)',
+    starBorder: 'rgba(100,140,180,0.28)',
+    starText: 'rgba(60,100,140,0.7)',
+    ctaBg: 'linear-gradient(135deg,#3a6a9a,#5a9ad8,#3a6a9a)',
+    ctaText: '#f8fafc',
+    footerText: '#a0b8d0',
+    scrollLine: 'rgba(74,138,192,0.3)',
+    scrollText: '#a0b8d0',
+    altSection: 'rgba(255,255,255,0.4)',
+    quoteBg: 'rgba(255,255,255,0.9)',
+  },
+  jade: {
+    bgBase: '#0a1210',
+    heroGradient: 'linear-gradient(to bottom, #0a1210 0%, #0a1210 6%, #0e1a18 22%, #122820 40%, #0e1a18 68%, #0a1412 86%, #0a1210 100%)',
+    navBg: '#0a1210',
+    navBorder: 'rgba(255,255,255,0.04)',
+    goldGrad: 'linear-gradient(160deg,#3d8a6a 0%,#5dd8a0 40%,#3d8a6a 70%,#4db88a 100%)',
+    goldSolid: '#4db88a',
+    goldLine: 'rgba(77,184,138,0.4)',
+    tagText: 'rgba(77,184,138,0.6)',
+    textPrimary: '#e0f0e8',
+    textSecond: '#b0d4c0',
+    textMuted: '#7ab898',
+    textFaint: 'rgba(200,240,220,0.5)',
+    accent: '#4db88a',
+    accentSoft: 'rgba(77,184,138,0.15)',
+    cardBg: 'rgba(255,255,255,0.04)',
+    cardBorder: 'rgba(255,255,255,0.08)',
+    cardShadow: '0 4px 32px rgba(0,0,0,0.5)',
+    featureBg: 'rgba(255,255,255,0.03)',
+    featureBord: 'rgba(255,255,255,0.06)',
+    glowTint: 'rgba(77,184,138,0.06)',
+    glowBlue: 'rgba(40,140,100,0.10)',
+    glowPurple: 'rgba(60,120,140,0.06)',
+    niBg: 'rgba(255,255,255,0.03)',
+    niBorder: 'rgba(77,184,138,0.2)',
+    niDivider: 'rgba(255,255,255,0.06)',
+    niCardBg: 'rgba(255,255,255,0.03)',
+    niCardBord: 'rgba(255,255,255,0.06)',
+    niCardShadow: '0 2px 20px rgba(0,0,0,0.4)',
+    starBg: 'rgba(255,255,255,0.03)',
+    starBorder: 'rgba(77,184,138,0.2)',
+    starText: 'rgba(77,184,138,0.65)',
+    ctaBg: 'linear-gradient(135deg,#2d7a5a,#4db88a,#2d7a5a)',
+    ctaText: '#e8f8f0',
+    footerText: 'rgba(255,255,255,0.06)',
+    scrollLine: 'rgba(77,184,138,0.3)',
+    scrollText: 'rgba(255,255,255,0.10)',
+    altSection: 'rgba(255,255,255,0.015)',
+    quoteBg: 'rgba(77,184,138,0.04)',
+  },
+};
+
 function useColors(theme: Theme) {
-  const d = theme === 'dark';
-  return {
-    bgBase:       d ? '#020810'                                : '#f5efe0',
-    // nav 用与 bgBase 完全相同的不透明色，避免半透明叠加产生色差带
-    navBg:        d ? '#020810'                                : '#f5efe0',
-    navBorder:    d ? 'rgba(255,255,255,0.05)'                : 'rgba(160,120,30,0.15)',
-    goldGrad:     d ? 'linear-gradient(160deg,#c8993a 0%,#f0d070 40%,#c8993a 70%,#f0c755 100%)'
-                    : 'linear-gradient(160deg,#6a4206 0%,#9a6a10 40%,#6a4206 70%,#885010 100%)',
-    goldSolid:    d ? '#d4a843'                               : '#8b6410',
-    goldLine:     d ? 'rgba(212,168,67,0.4)'                  : 'rgba(140,100,20,0.4)',
-    tagText:      d ? 'rgba(212,168,67,0.6)'                  : 'rgba(120,80,10,0.65)',
-    // 亮色文字用冷灰系（A 方案核心）：暖底 + 冷字 → 视觉不审美疲劳
-    textPrimary:  d ? '#e8eef6'                               : '#1a1d24',
-    textSecond:   d ? '#b8c6df'                               : '#3a3f4a',
-    textMuted:    d ? '#9db0d0'                               : '#5a6275',
-    textFaint:    d ? 'rgba(240,246,255,0.56)'                : '#9da4b3',
-    // 冷色 accent（B 方案核心）：呼应暗色 quan 蓝；用于装饰性 glow / 链接 / 高亮
-    accent:       d ? '#3a78d4'                               : '#3a5a82',
-    accentSoft:   d ? 'rgba(58,120,212,0.18)'                 : 'rgba(58,90,130,0.10)',
-    cardBg:       d ? 'rgba(255,255,255,0.05)'                : 'rgba(255,255,255,0.88)',
-    cardBorder:   d ? 'rgba(255,255,255,0.10)'                : 'rgba(200,160,60,0.25)',
-    cardShadow:   d ? '0 4px 32px rgba(0,0,0,0.5)'           : '0 4px 24px rgba(140,100,20,0.12)',
-    featureBg:    d ? 'rgba(255,255,255,0.04)'                : 'rgba(255,255,255,0.75)',
-    featureBord:  d ? 'rgba(255,255,255,0.08)'                : 'rgba(200,160,60,0.2)',
-    glowTint:     d ? 'rgba(212,168,67,0.07)'                 : 'rgba(180,140,40,0.06)',
-    // 亮色 glow 真用蓝/紫——给整体氛围加冷色点缀
-    glowBlue:     d ? 'rgba(40,80,160,0.12)'                  : 'rgba(58,90,130,0.06)',
-    glowPurple:   d ? 'rgba(120,50,180,0.08)'                 : 'rgba(96,80,140,0.04)',
-    niBg:         d ? 'rgba(255,255,255,0.04)'                : 'rgba(255,255,255,0.8)',
-    niBorder:     d ? 'rgba(212,168,67,0.2)'                  : 'rgba(180,130,40,0.25)',
-    niDivider:    d ? 'rgba(255,255,255,0.08)'                : 'rgba(180,130,40,0.12)',
-    niCardBg:     d ? 'rgba(255,255,255,0.04)'                : 'rgba(255,255,255,0.9)',
-    niCardBord:   d ? 'rgba(255,255,255,0.08)'                : 'rgba(200,160,60,0.2)',
-    niCardShadow: d ? '0 2px 20px rgba(0,0,0,0.4)'           : '0 2px 16px rgba(140,100,20,0.1)',
-    starBg:       d ? 'rgba(255,255,255,0.04)'                : 'rgba(255,255,255,0.7)',
-    starBorder:   d ? 'rgba(212,168,67,0.22)'                 : 'rgba(160,120,30,0.3)',
-    starText:     d ? 'rgba(212,168,67,0.7)'                  : 'rgba(120,80,10,0.7)',
-    ctaBg:        d ? 'linear-gradient(135deg,#b8892a,#f0d070,#b8892a)'
-                    : 'linear-gradient(135deg,#6a4206,#9a6810,#6a4206)',
-    ctaText:      d ? '#08080a'                               : '#f8f3e8',
-    footerText:   d ? 'rgba(255,255,255,0.08)'                : '#d0b878',
-    scrollLine:   d ? 'rgba(212,168,67,0.3)'                  : 'rgba(140,100,20,0.3)',
-    scrollText:   d ? 'rgba(255,255,255,0.12)'                : '#c0a870',
-    altSection:   d ? 'rgba(255,255,255,0.02)'                : 'rgba(255,255,255,0.4)',
-    quoteBg:      d ? 'rgba(212,168,67,0.04)'                 : 'rgba(255,255,255,0.9)',
-  };
+  return PALETTES[theme];
 }
 
 // ─── 四化简介数据 ─────────────────────────────────────────
@@ -526,7 +633,7 @@ export default function HomePage() {
             transition={{ duration: 0.9, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
             style={{ position: 'relative', display: 'inline-block' }}>
             <h1
-              className={`grad-text ${theme === 'dark' ? 'grad-text-dark' : 'grad-text-light'} font-bold leading-none mb-5`}
+              className={`grad-text ${'grad-text-' + theme} font-bold leading-none mb-5`}
               style={{
                 fontSize: 'clamp(56px, 10vw, 124px)',
                 letterSpacing: '0.07em',
@@ -658,9 +765,7 @@ export default function HomePage() {
         <WeakBoundary line={c.navBorder} />
         <div className="absolute inset-0"
           style={{
-            background: theme === 'dark'
-              ? 'linear-gradient(to bottom, #020810 0%, #020810 6%, #030a18 22%, #0d0820 40%, #0a0618 68%, #030a18 86%, #020810 100%)'
-              : 'linear-gradient(to bottom, #f5efe0 0%, #f5efe0 6%, #c08055 18%, #6a2810 32%, #1e0a02 50%, #1e0a02 70%, #6a2810 84%, #f5efe0 100%)',
+            background: c.heroGradient,
             transition: 'background 0.4s ease',
           }} />
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
@@ -688,7 +793,7 @@ export default function HomePage() {
             <motion.p
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.45 }}
-              className={`grad-text ${theme === 'dark' ? 'grad-text-dark' : 'grad-text-light'} font-bold`}
+              className={`grad-text ${'grad-text-' + theme} font-bold`}
               style={{ fontSize: 'clamp(24px, 3.4vw, 48px)', letterSpacing: '0.05em', lineHeight: 1.35 }}>
               最终书写属于自己的人生剧本
             </motion.p>
@@ -699,7 +804,7 @@ export default function HomePage() {
       {/* ══ 4 大学习板块时间轴 ════════════════════════════ */}
       <section className="relative z-10 py-20 lg:py-24 px-6"
         style={{
-          background: theme === 'dark'
+          background: (theme === 'dark' || theme === 'jade')
             ? 'linear-gradient(to bottom, transparent 0%, rgba(184,146,42,0.03) 50%, transparent 100%)'
             : 'linear-gradient(to bottom, transparent 0%, rgba(184,146,42,0.04) 50%, transparent 100%)',
         }}>
@@ -746,7 +851,7 @@ export default function HomePage() {
                     style={{
                       background: ready
                         ? `linear-gradient(135deg, ${c.goldSolid} 0%, ${c.goldSolid}cc 100%)`
-                        : (theme === 'dark' ? 'rgba(184,146,42,0.05)' : '#fdf8ee'),
+                        : ((theme === 'dark' || theme === 'jade') ? 'rgba(184,146,42,0.05)' : '#fdf8ee'),
                       border: ready ? 'none' : `2px dashed ${c.goldLine}`,
                       color: ready ? '#fff' : c.textMuted,
                       boxShadow: ready ? `0 4px 16px ${c.goldSolid}55` : 'none',
@@ -775,7 +880,7 @@ export default function HomePage() {
                         <div className="text-[9px] tracking-[0.15em] px-2 py-0.5 rounded-full lg:hidden"
                           style={{
                             color: c.goldSolid,
-                            background: theme === 'dark' ? 'rgba(184,146,42,0.1)' : 'rgba(184,146,42,0.08)',
+                            background: (theme === 'dark' || theme === 'jade') ? 'rgba(184,146,42,0.1)' : 'rgba(184,146,42,0.08)',
                             border: `1px solid ${c.goldLine}`,
                             opacity: 0.85,
                           }}>
@@ -788,7 +893,7 @@ export default function HomePage() {
                       <div className="hidden lg:block text-[9px] tracking-[0.15em] mb-1.5 px-2 py-0.5 rounded-full"
                         style={{
                           color: c.goldSolid,
-                          background: theme === 'dark' ? 'rgba(184,146,42,0.1)' : 'rgba(184,146,42,0.08)',
+                          background: (theme === 'dark' || theme === 'jade') ? 'rgba(184,146,42,0.1)' : 'rgba(184,146,42,0.08)',
                           border: `1px solid ${c.goldLine}`,
                           opacity: 0.85,
                         }}>
@@ -825,7 +930,7 @@ export default function HomePage() {
                     </div>
                   </FadeIn>
                   <FadeIn delay={0.1}>
-                    <h2 className={`grad-text ${theme === 'dark' ? 'grad-text-dark' : 'grad-text-light'} font-bold leading-tight mb-5 tracking-tight`}
+                    <h2 className={`grad-text ${'grad-text-' + theme} font-bold leading-tight mb-5 tracking-tight`}
                       style={{
                         fontSize: i < 2 ? 'clamp(36px, 4vw, 56px)' : 'clamp(30px, 3.5vw, 48px)',
                         whiteSpace: 'pre-line',
@@ -879,7 +984,7 @@ export default function HomePage() {
                 <span className="text-[10px] tracking-[0.5em] uppercase" style={{ color: c.tagText }}>Ni Haixia · Philosophy</span>
                 <div className="h-px w-12" style={{ background: `linear-gradient(to left, transparent, ${c.goldLine})` }} />
               </div>
-              <h2 className={`grad-text ${theme === 'dark' ? 'grad-text-dark' : 'grad-text-light'} font-bold mb-5 tracking-tight`}
+              <h2 className={`grad-text ${'grad-text-' + theme} font-bold mb-5 tracking-tight`}
                 style={{ fontSize: 'clamp(32px, 4vw, 48px)' }}>
                 天 · 地 · 人
               </h2>
@@ -938,7 +1043,7 @@ export default function HomePage() {
                 <span className="text-[10px] tracking-[0.5em] uppercase" style={{ color: c.tagText }}>Master · 1953 – 2012</span>
                 <div className="h-px w-12" style={{ background: `linear-gradient(to left, transparent, ${c.goldLine})` }} />
               </div>
-              <h2 className={`grad-text ${theme === 'dark' ? 'grad-text-dark' : 'grad-text-light'} font-bold mb-6 tracking-tight`}
+              <h2 className={`grad-text ${'grad-text-' + theme} font-bold mb-6 tracking-tight`}
                 style={{ fontSize: 'clamp(32px, 4vw, 48px)' }}>
                 倪海夏老师
               </h2>
@@ -1032,7 +1137,7 @@ export default function HomePage() {
         <div className="mx-auto" style={{ maxWidth: '1280px' }}>
           <div className="rounded-2xl p-10 md:p-14 text-center"
             style={{
-              background: theme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.8)',
+              background: (theme === 'dark' || theme === 'jade') ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.8)',
               border: `1px solid ${c.cardBorder}`,
               boxShadow: c.cardShadow,
             }}>
@@ -1042,7 +1147,7 @@ export default function HomePage() {
                 <span className="text-[10px] tracking-[0.5em] uppercase" style={{ color: c.tagText }}>Compatibility · Analysis</span>
                 <div className="h-px w-8" style={{ background: c.goldLine }} />
               </div>
-              <h2 className={`grad-text ${theme === 'dark' ? 'grad-text-dark' : 'grad-text-light'} font-bold mb-4 tracking-tight`}
+              <h2 className={`grad-text ${'grad-text-' + theme} font-bold mb-4 tracking-tight`}
                 style={{ fontSize: 'clamp(26px, 3.5vw, 40px)' }}>
                 紫微合盘
               </h2>
@@ -1054,7 +1159,7 @@ export default function HomePage() {
                 {['感情匹配度分析', '合伙创业评估', '亲子缘分解读', '婚前相性评估'].map(item => (
                   <span key={item} style={{
                     fontSize: '12px', padding: '5px 14px', borderRadius: '20px',
-                    background: theme === 'dark' ? 'rgba(212,168,67,0.08)' : 'rgba(212,168,67,0.12)',
+                    background: (theme === 'dark' || theme === 'jade') ? 'rgba(212,168,67,0.08)' : 'rgba(212,168,67,0.12)',
                     border: `1px solid ${c.goldLine}`,
                     color: c.goldSolid,
                   }}>
@@ -1067,7 +1172,7 @@ export default function HomePage() {
                 onClick={() => router.push('/heming')}
                 className="px-10 py-3 font-medium text-sm tracking-widest rounded-full"
                 style={{
-                  background: theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(140,100,20,0.1)',
+                  background: (theme === 'dark' || theme === 'jade') ? 'rgba(255,255,255,0.08)' : 'rgba(140,100,20,0.1)',
                   border: `1px solid ${c.goldLine}`,
                   color: c.goldSolid,
                   cursor: 'pointer',
@@ -1083,7 +1188,7 @@ export default function HomePage() {
       <section className="relative z-10 py-40 px-6 text-center" style={{ background: c.altSection }}>
         <FadeIn>
           <p className="text-[10px] tracking-[0.6em] uppercase mb-6" style={{ color: c.tagText }}>开始你的命盘之旅</p>
-          <h2 className={`grad-text ${theme === 'dark' ? 'grad-text-dark' : 'grad-text-light'} font-bold mb-8 tracking-tight leading-tight`}
+          <h2 className={`grad-text ${'grad-text-' + theme} font-bold mb-8 tracking-tight leading-tight`}
             style={{ fontSize: 'clamp(32px, 5vw, 60px)' }}>
             你的紫微命盘<br />等你解读
           </h2>

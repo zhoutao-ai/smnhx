@@ -451,21 +451,22 @@ ${selectedSiHua.starName}化${selectedSiHua.siHua}落在【${palaceName}】，�
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
             placeholder="继续追问，如：今年适合换工作吗？"
             disabled={loading}
-            className="flex-1 rounded-lg px-3 py-2 text-[11px] focus:outline-none transition-colors"
+            className="flex-1 rounded-lg px-3 py-2 text-[12px] focus:outline-none transition-all"
             style={{
               background: 'var(--t-card)',
-              border: '1px solid var(--t-border)',
+              border: '2px solid rgba(212,168,67,0.45)',
               color: 'var(--t-text)',
             }}
           />
           <button
             onClick={handleSend}
             disabled={loading || !input.trim()}
-            className="px-3 py-2 rounded-lg text-[11px] font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            className="px-5 py-2 rounded-lg text-[12px] font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             style={{
-              background: 'rgba(212,168,67,0.15)',
-              border: '1px solid rgba(212,168,67,0.25)',
-              color: 'var(--t-gold)',
+              background: 'var(--ac)',
+              border: 'none',
+              color: '#fff',
+              letterSpacing: '0.05em',
             }}
           >
             {loading ? '…' : '追问'}
