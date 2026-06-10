@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const BASE_URL = 'https://zwdssm.top';
+const BASE_URL = 'https://topsmtao.win';
 
 export default function robots(): MetadataRoute.Robots {
   return {

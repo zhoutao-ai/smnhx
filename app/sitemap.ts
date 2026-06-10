@@ -11,7 +11,7 @@ import type { MetadataRoute } from 'next';
 import { ALL_BOOKS } from '@/lib/classics';
 import { getAllKnowledgeRoutes } from '@/lib/seo/knowledge';
 
-const BASE_URL = 'https://zwdssm.top';
+const BASE_URL = 'https://topsmtao.win';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastmod = new Date('2026-04-28');

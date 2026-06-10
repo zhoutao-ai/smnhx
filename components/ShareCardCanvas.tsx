@@ -103,7 +103,7 @@ export default function ShareCardCanvas({ chart, birth, highlight }: ShareCardPr
             {birth.city && <><span style={{ margin: '0 4px', color: '#b8922a' }}>·</span>{birth.city}</>}
           </div>
           <div style={{ fontSize: '8px', color: '#b8922a', letterSpacing: '0.08em', marginTop: '2px' }}>
-            zwdssm.top
+            topsmtao.win
           </div>
         </div>
       </div>
