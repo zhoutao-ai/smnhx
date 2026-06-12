@@ -2,31 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── 2.0 设计系统 Token ─────────────────────────────────── */
+/* ─── 亮色主题（宣纸·古籍手稿）─────────────────────────── */
 :root {
   /* 字体 */
   --font: -apple-system, 'PingFang SC', 'Helvetica Neue', 'Segoe UI', sans-serif;
   --font-mono: 'SF Mono', 'Menlo', 'Noto Sans Mono', 'Consolas', monospace;
 
-  /* 背景层级 */
-  --bg-0: #FAFAF9;
-  --bg-1: #F4F3EF;
-  --bg-2: #ECEAE4;
-  --bg-inv: #0D0D0B;
+  /* 背景层级 — 陈年宣纸的温润白色 */
+  --bg-0: #f8f3e8;
+  --bg-1: #f2ecd8;
+  --bg-2: #e8e0c8;
+  --bg-inv: #1a1810;
 
-  /* 文字层级 */
-  --tx-0: #0D0D0B;
-  --tx-1: #1A1A18;
-  --tx-2: #4A4A45;
-  --tx-3: #8A8A82;
-  --tx-inv: #F0EDE8;
-  --tx-inv2: rgba(240,237,232,0.65);
+  /* 文字层级 — 墨色书写 */
+  --tx-0: #1a1810;
+  --tx-1: #2a2820;
+  --tx-2: #585448;
+  --tx-3: #888478;
+  --tx-inv: #f8f3e8;
+  --tx-inv2: rgba(248,243,232,0.65);
 
-  /* 唯一强调色：墨金 */
-  --ac:     #B8922A;
-  --ac-dim: #7A5F1A;
-  --ac-bg:  rgba(184,146,42,0.07);
-  --ac-bdr: rgba(184,146,42,0.22);
+  /* 强调色：朱砂红 — 古籍上的印章 */
+  --ac:     #c44536;
+  --ac-dim: #a03028;
+  --ac-bg:  rgba(196,69,54,0.06);
+  --ac-bdr: rgba(196,69,54,0.22);
 
   /* 四化语义色（仅用于命盘数据，不用于UI装饰） */
   --lu:   #2D7A4A;
@@ -35,19 +35,19 @@
   --ji:   #A83228;
 
   /* 边框 */
-  --bdr:      rgba(0,0,0,0.07);
-  --bdr-med:  rgba(0,0,0,0.11);
-  --bdr-heavy:rgba(0,0,0,0.18);
+  --bdr:      rgba(0,0,0,0.06);
+  --bdr-med:  rgba(0,0,0,0.10);
+  --bdr-heavy:rgba(0,0,0,0.16);
 
   /* 阴影 */
-  --sh-xs: 0 1px 2px rgba(0,0,0,0.05);
-  --sh-sm: 0 2px 8px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
-  --sh-md: 0 4px 20px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05);
-  --sh-lg: 0 12px 40px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.06);
+  --sh-xs: 0 1px 2px rgba(0,0,0,0.04);
+  --sh-sm: 0 2px 8px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.03);
+  --sh-md: 0 4px 20px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.04);
+  --sh-lg: 0 12px 40px rgba(0,0,0,0.09), 0 4px 12px rgba(0,0,0,0.05);
 
   /* 卡片/内容块背景 */
-  --bg-card: #FFFFFF;
-  --bg-page: #fbf6e8;
+  --bg-card: #fdfaf4;
+  --bg-page: #f8f3e8;
 
   /* 圆角 */
   --r-xs:  4px;
@@ -58,100 +58,132 @@
   --r-pill:999px;
 }
 
-/* ─── 霜蓝主题（Frost）── 冷调冰蓝色 ────────────────────── */
+/* ─── 霜蓝主题（白露·秋晨露水）─────────────────────────── */
 [data-theme="frost"] {
-  --bg-0: #f0f4f8;
-  --bg-1: #e4ebf2;
-  --bg-2: #d6e0ea;
-  --bg-inv: #1a2a3a;
+  --bg-0: #f2f6f9;
+  --bg-1: #e6edf4;
+  --bg-2: #d8e2ec;
+  --bg-inv: #1a2828;
 
-  --tx-0: #1a2430;
-  --tx-1: #2a3440;
-  --tx-2: #4a5a6a;
-  --tx-3: #7a8a9a;
-  --tx-inv: #f0f4f8;
-  --tx-inv2: rgba(240,244,248,0.7);
+  --tx-0: #1a2428;
+  --tx-1: #2a3438;
+  --tx-2: #48585a;
+  --tx-3: #78888a;
+  --tx-inv: #f2f6f9;
+  --tx-inv2: rgba(242,246,249,0.7);
 
-  --ac:     #4a8ac0;
-  --ac-dim: #68a8dc;
-  --ac-bg:  rgba(74,138,192,0.08);
-  --ac-bdr: rgba(74,138,192,0.28);
+  --ac:     #5a9e8a;
+  --ac-dim: #7ab8a0;
+  --ac-bg:  rgba(90,158,138,0.08);
+  --ac-bdr: rgba(90,158,138,0.26);
 
-  --bdr:      rgba(100,140,180,0.10);
-  --bdr-med:  rgba(100,140,180,0.16);
-  --bdr-heavy:rgba(100,140,180,0.24);
+  --bdr:      rgba(90,130,120,0.10);
+  --bdr-med:  rgba(90,130,120,0.15);
+  --bdr-heavy:rgba(90,130,120,0.22);
 
-  --sh-xs: 0 1px 2px rgba(60,100,140,0.06);
-  --sh-sm: 0 2px 8px rgba(60,100,140,0.08), 0 1px 3px rgba(60,100,140,0.05);
-  --sh-md: 0 4px 20px rgba(60,100,140,0.10), 0 2px 6px rgba(60,100,140,0.06);
-  --sh-lg: 0 12px 40px rgba(60,100,140,0.12), 0 4px 12px rgba(60,100,140,0.08);
+  --sh-xs: 0 1px 2px rgba(60,100,90,0.05);
+  --sh-sm: 0 2px 8px rgba(60,100,90,0.07), 0 1px 3px rgba(60,100,90,0.04);
+  --sh-md: 0 4px 20px rgba(60,100,90,0.09), 0 2px 6px rgba(60,100,90,0.05);
+  --sh-lg: 0 12px 40px rgba(60,100,90,0.11), 0 4px 12px rgba(60,100,90,0.07);
 
-  --bg-card: #f8fafc;
-  --bg-page: #f0f4f8;
+  --bg-card: #f8fafb;
+  --bg-page: #f2f6f9;
 }
 
-/* ─── 墨玉主题（Jade）── 深青玉色 ────────────────────────── */
+/* ─── 暮紫主题（Dusk）── 古观星台·夜观天象 ────────────── */
+[data-theme="dusk"] {
+  --bg-0: #0d0f1a;
+  --bg-1: #111420;
+  --bg-2: #181c2c;
+  --bg-inv: #f0edf8;
+
+  --tx-0: #e8e4f0;
+  --tx-1: #e0dce8;
+  --tx-2: #b0a8c0;
+  --tx-3: #706878;
+  --tx-inv: #0d0f1a;
+  --tx-inv2: rgba(13,15,26,0.65);
+
+  --ac:     #d4a458;
+  --ac-dim: #e8c078;
+  --ac-bg:  rgba(212,164,88,0.10);
+  --ac-bdr: rgba(212,164,88,0.28);
+
+  --bdr:      rgba(255,255,255,0.05);
+  --bdr-med:  rgba(255,255,255,0.09);
+  --bdr-heavy:rgba(255,255,255,0.16);
+
+  --sh-xs: 0 1px 2px rgba(0,0,0,0.35);
+  --sh-sm: 0 2px 8px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.35);
+  --sh-md: 0 4px 20px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.4);
+  --sh-lg: 0 12px 40px rgba(0,0,0,0.65), 0 4px 12px rgba(0,0,0,0.45);
+
+  --bg-card: rgba(255,255,255,0.03);
+  --bg-page: #0d0f1a;
+}
+
+/* ─── 墨玉主题（玉佩·雕刻翡翠）─────────────────────────── */
 [data-theme="jade"] {
-  --bg-0: #0a1210;
-  --bg-1: #0f1a18;
-  --bg-2: #162420;
+  --bg-0: #0a1410;
+  --bg-1: #0e1c18;
+  --bg-2: #142820;
   --bg-inv: #e8f0ec;
 
-  --tx-0: #e0f0e8;
-  --tx-1: #d4e8e0;
-  --tx-2: #8ab8a0;
-  --tx-3: #5a8870;
-  --tx-inv: #0a1210;
-  --tx-inv2: rgba(10,18,16,0.65);
+  --tx-0: #dcf0e4;
+  --tx-1: #d0e8d8;
+  --tx-2: #80b898;
+  --tx-3: #508868;
+  --tx-inv: #0a1410;
+  --tx-inv2: rgba(10,20,16,0.65);
 
-  --ac:     #4db88a;
-  --ac-dim: #6dd8a8;
-  --ac-bg:  rgba(77,184,138,0.10);
-  --ac-bdr: rgba(77,184,138,0.25);
+  --ac:     #56b890;
+  --ac-dim: #78d8a8;
+  --ac-bg:  rgba(86,184,144,0.10);
+  --ac-bdr: rgba(86,184,144,0.25);
+
+  --bdr:      rgba(255,255,255,0.05);
+  --bdr-med:  rgba(255,255,255,0.09);
+  --bdr-heavy:rgba(255,255,255,0.16);
+
+  --sh-xs: 0 1px 2px rgba(0,0,0,0.35);
+  --sh-sm: 0 2px 8px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.35);
+  --sh-md: 0 4px 20px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.4);
+  --sh-lg: 0 12px 40px rgba(0,0,0,0.65), 0 4px 12px rgba(0,0,0,0.45);
+
+  --bg-card: rgba(255,255,255,0.03);
+  --bg-page: #0a1410;
+}
+
+/* ─── 暗色主题（浑天仪·青铜观星器）─────────────────────── */
+[data-theme="dark"] {
+  --bg-0: #080c14;
+  --bg-1: #0e1220;
+  --bg-2: #161c30;
+  --bg-inv: #f0ecd8;
+
+  --tx-0: #e8e2d0;
+  --tx-1: #e0dac8;
+  --tx-2: #a09880;
+  --tx-3: #706850;
+  --tx-inv: #080c14;
+  --tx-inv2: rgba(8,12,20,0.65);
+
+  --ac:     #c89848;
+  --ac-dim: #e0b060;
+  --ac-bg:  rgba(200,152,72,0.10);
+  --ac-bdr: rgba(200,152,72,0.25);
 
   --bdr:      rgba(255,255,255,0.06);
   --bdr-med:  rgba(255,255,255,0.10);
   --bdr-heavy:rgba(255,255,255,0.18);
 
-  --sh-xs: 0 1px 2px rgba(0,0,0,0.3);
-  --sh-sm: 0 2px 8px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
-  --sh-md: 0 4px 20px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.35);
-  --sh-lg: 0 12px 40px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
+  --sh-xs: 0 1px 2px rgba(0,0,0,0.35);
+  --sh-sm: 0 2px 8px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.35);
+  --sh-md: 0 4px 20px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.4);
+  --sh-lg: 0 12px 40px rgba(0,0,0,0.65), 0 4px 12px rgba(0,0,0,0.45);
 
   --bg-card: rgba(255,255,255,0.03);
-  --bg-page: #0a1210;
-}
-
-/* ─── 暗色模式 Token 覆盖 ──────────────────────────────── */
-[data-theme="dark"] {
-  --bg-0: #020810;
-  --bg-1: #0a1020;
-  --bg-2: #141e30;
-  --bg-inv: #f0ede8;
-
-  --tx-0: #e8eef6;
-  --tx-1: #dce4f0;
-  --tx-2: #9db0d0;
-  --tx-3: #6a7a96;
-  --tx-inv: #0d0d0b;
-  --tx-inv2: rgba(13,13,11,0.65);
-
-  --ac:     #d4a843;
-  --ac-dim: #e8c060;
-  --ac-bg:  rgba(212,168,67,0.10);
-  --ac-bdr: rgba(212,168,67,0.25);
-
-  --bdr:      rgba(255,255,255,0.07);
-  --bdr-med:  rgba(255,255,255,0.12);
-  --bdr-heavy:rgba(255,255,255,0.20);
-
-  --sh-xs: 0 1px 2px rgba(0,0,0,0.3);
-  --sh-sm: 0 2px 8px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
-  --sh-md: 0 4px 20px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.35);
-  --sh-lg: 0 12px 40px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
-
-  --bg-card: rgba(255,255,255,0.04);
-  --bg-page: #020810;
+  --bg-page: #080c14;
 }
 
 /* ─── 全局基础 ───────────────────────────────────────────── */
@@ -373,16 +405,19 @@ body {
   display: inline-block;
 }
 .grad-text-dark {
-  background-image: linear-gradient(160deg, #c8993a 0%, #f0d070 40%, #c8993a 70%, #f0c755 100%);
+  background-image: linear-gradient(160deg, #a87828 0%, #d4b060 40%, #a87828 70%, #c89840 100%);
 }
 .grad-text-light {
-  background-image: linear-gradient(160deg, #6a4206 0%, #9a6a10 40%, #6a4206 70%, #885010 100%);
+  background-image: linear-gradient(160deg, #a03028 0%, #c44536 40%, #a03028 70%, #d45040 100%);
 }
 .grad-text-frost {
-  background-image: linear-gradient(160deg, #3a6a9a 0%, #5a9ad8 40%, #3a6a9a 70%, #68a8dc 100%);
+  background-image: linear-gradient(160deg, #3a7a68 0%, #5a9e8a 40%, #3a7a68 70%, #7ab8a0 100%);
 }
 .grad-text-jade {
   background-image: linear-gradient(160deg, #3d8a6a 0%, #5dd8a0 40%, #3d8a6a 70%, #6dd8a8 100%);
+}
+.grad-text-dusk {
+  background-image: linear-gradient(160deg, #a07830 0%, #d4a458 40%, #a07830 70%, #e8c078 100%);
 }
 
 /* ─── 命盘工作台响应式 ─────────────────────────────────── */

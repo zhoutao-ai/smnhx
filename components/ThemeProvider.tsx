@@ -1,17 +1,18 @@
 'use client';
 import { createContext, useContext, useEffect, useState } from 'react';
 
-export type Theme = 'dark' | 'light' | 'frost' | 'jade';
+export type Theme = 'dark' | 'light' | 'frost' | 'jade' | 'dusk';
 
-const THEME_ORDER: Theme[] = ['dark', 'light', 'frost', 'jade'];
+const THEME_ORDER: Theme[] = ['dark', 'light', 'frost', 'jade', 'dusk'];
 const THEME_LABELS: Record<Theme, string> = {
   dark: '暗色',
   light: '亮色',
   frost: '霜蓝',
   jade: '墨玉',
+  dusk: '暮紫',
 };
 
-const ALL_THEMES: Theme[] = ['dark', 'light', 'frost', 'jade'];
+const ALL_THEMES: Theme[] = ['dark', 'light', 'frost', 'jade', 'dusk'];
 
 function isValidTheme(t: string | null): t is Theme {
   return ALL_THEMES.includes(t as Theme);

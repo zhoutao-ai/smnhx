@@ -101,11 +101,24 @@ export async function setupDatabase(): Promise<{ success: boolean; error?: strin
       )
     `.catch(() => {});
 
+    // RAG 命盘样本库
+    await sql`
+      CREATE TABLE IF NOT EXISTS rag_samples (
+        id SERIAL PRIMARY KEY,
+        gender TEXT NOT NULL,
+        year INT NOT NULL,
+        fingerprint JSONB NOT NULL,
+        interpretations JSONB NOT NULL DEFAULT '{}',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `.catch(() => {});
+
     // 索引
     await sql`CREATE INDEX IF NOT EXISTS idx_visits_date ON visits (date DESC)`.catch(() => {});
     await sql`CREATE INDEX IF NOT EXISTS idx_chart_logs_created_at ON chart_logs (created_at DESC)`.catch(() => {});
     await sql`CREATE INDEX IF NOT EXISTS idx_ai_logs_created_at ON ai_logs (created_at DESC)`.catch(() => {});
     await sql`CREATE INDEX IF NOT EXISTS idx_ai_logs_type ON ai_logs (type)`.catch(() => {});
+    await sql`CREATE INDEX IF NOT EXISTS idx_rag_samples_gender ON rag_samples (gender)`.catch(() => {});
 
     return { success: true };
   } catch (e) {
