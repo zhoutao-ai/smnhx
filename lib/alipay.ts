@@ -50,14 +50,14 @@ export function isMockPay(): boolean {
 
 export interface CreatePayResult {
   success: boolean;
-  payUrl?: string;    // 支付宝收银台跳转 URL
+  payForm?: string;   // 签名后的 HTML 表单（含完整参数，不可修改）
   outTradeNo?: string;
   error?: string;
 }
 
 /**
- * 生成电脑网站支付跳转 URL。
- * 前端直接 window.location.href 跳转支付宝收银台。
+ * 生成电脑网站支付表单 HTML（已签名，前端直接渲染提交）。
+ * 必须用 POST 表单提交——签名覆盖所有参数，改动任何参数验签失败。
  */
 export function createPagePay(
   outTradeNo: string,
@@ -72,8 +72,7 @@ export function createPagePay(
   }
 
   try {
-    // pageExec 生成 POST 表单, 提取 action URL + 补上 biz_content 参数实现 GET 跳转
-    const formHtml = client.pageExec('alipay.trade.page.pay', {
+    const payForm = client.pageExec('alipay.trade.page.pay', {
       bizContent: {
         out_trade_no: outTradeNo,
         product_code: 'FAST_INSTANT_TRADE_PAY',
@@ -84,24 +83,7 @@ export function createPagePay(
       notifyUrl,
     });
 
-    // 从 form action 提取已签名的基础 URL
-    const match = formHtml.match(/action="([^"]+)"/);
-    const actionUrl = match ? match[1] : '';
-
-    if (!actionUrl) {
-      return { success: false, error: '生成支付链接失败' };
-    }
-
-    // 把 biz_content 也加到 URL 参数里（支付宝网关兼容 GET 请求）
-    const bizContent = JSON.stringify({
-      out_trade_no: outTradeNo,
-      product_code: 'FAST_INSTANT_TRADE_PAY',
-      total_amount: totalAmount,
-      subject,
-    });
-    const payUrl = `${actionUrl}&biz_content=${encodeURIComponent(bizContent)}`;
-
-    return { success: true, payUrl, outTradeNo };
+    return { success: true, payForm, outTradeNo };
   } catch (e) {
     const msg = e instanceof Error ? e.message : '支付宝请求异常';
     return { success: false, error: msg };

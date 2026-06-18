@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
   if (result.success) {
     return NextResponse.json({
       success: true,
-      payUrl: result.payUrl,
+      payForm: result.payForm,
       outTradeNo: result.outTradeNo,
     });
   }

@@ -6,7 +6,6 @@ import { setUnlocked } from '@/lib/usage';
 export default function PayPage() {
   const [step, setStep] = useState<'loading' | 'paying' | 'paid' | 'error'>('loading');
   const [outTradeNo, setOutTradeNo] = useState('');
-  const [payUrl, setPayUrl] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const pollingRef = useRef<ReturnType<typeof setInterval>>();
 
@@ -24,20 +23,14 @@ export default function PayPage() {
     );
   }
 
-  // 初始化：检查是否支付回调 / 创建订单
+  // 初始化
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tradeNo = params.get('outTradeNo');
     const mockPaid = params.get('mock');
 
-    if (mockPaid === 'paid' && tradeNo) {
-      unlock(tradeNo);
-      return;
-    }
-    if (tradeNo) {
-      unlock(tradeNo);
-      return;
-    }
+    if (mockPaid === 'paid' && tradeNo) { unlock(tradeNo); return; }
+    if (tradeNo) { unlock(tradeNo); return; }
     createOrder();
     return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
   }, []); // eslint-disable-line
@@ -47,25 +40,34 @@ export default function PayPage() {
     try {
       const res = await fetch('/api/pay/create', { method: 'POST' });
       const data = await res.json();
-      if (!data.success) {
-        setErrorMsg(data.error ?? '创建订单失败');
-        setStep('error');
-        return;
-      }
+      if (!data.success) { setErrorMsg(data.error ?? '创建订单失败'); setStep('error'); return; }
       setOutTradeNo(data.outTradeNo);
-      if (data.mock) {
-        window.location.href = data.payUrl;
-        return;
+
+      // Mock 模式
+      if (data.mock) { window.location.href = data.payUrl; return; }
+
+      // 真实支付：渲染表单并自动提交
+      if (data.payForm) {
+        submitForm(data.payForm);
+        setStep('paying');
+        pollingRef.current = setInterval(() => checkPayment(data.outTradeNo), 3000);
+      } else {
+        setErrorMsg('未获取到支付表单');
+        setStep('error');
       }
-      setPayUrl(data.payUrl ?? '');
-      setStep('paying');
-      // 直接跳转支付宝
-      if (data.payUrl) window.location.href = data.payUrl;
-      // 同时开始轮询（页面可能还在等待跳转）
-      pollingRef.current = setInterval(() => checkPayment(data.outTradeNo), 3000);
-    } catch {
-      setErrorMsg('网络异常');
-      setStep('error');
+    } catch { setErrorMsg('网络异常'); setStep('error'); }
+  };
+
+  // ─── 原生 DOM 提交表单（不受 React 影响）─────────────────
+  const submitForm = (formHtml: string) => {
+    // 创建一个脱离 React 的 div
+    const container = document.createElement('div');
+    container.style.display = 'none';
+    document.body.appendChild(container);
+    container.innerHTML = formHtml;
+    const form = container.querySelector('form');
+    if (form) {
+      (form as HTMLFormElement).submit();
     }
   };
 
@@ -83,7 +85,7 @@ export default function PayPage() {
         setUnlocked(true);
         setStep('paid');
       }
-    } catch { /* 继续轮询 */ }
+    } catch { /* continue polling */ }
   };
 
   // ─── 手动验证 ──────────────────────────────────────────
@@ -100,22 +102,15 @@ export default function PayPage() {
         if (pollingRef.current) clearInterval(pollingRef.current);
         setUnlocked(true);
         setStep('paid');
-      } else {
-        alert('暂未收到付款，请确认已扫码支付');
-      }
-    } catch {
-      alert('验证失败，请重试');
-    }
+      } else { alert('暂未收到付款'); }
+    } catch { alert('验证失败'); }
   };
 
   // ─── 解锁 ──────────────────────────────────────────────
   const unlock = async (tradeNo: string) => {
     setStep('loading');
     await checkPayment(tradeNo);
-    // 如果还没查到（支付宝异步通知可能比同步回调慢），等3秒再查一次
-    if (step === 'loading') {
-      setTimeout(() => checkPayment(tradeNo), 3000);
-    }
+    if (step === 'loading') setTimeout(() => checkPayment(tradeNo), 3000);
   };
 
   // ─── UI ────────────────────────────────────────────────
@@ -135,35 +130,22 @@ export default function PayPage() {
     <div style={card}>
       <div style={inner}>
         {step === 'loading' && (
-          <><div style={{ fontSize: '32px', marginBottom: '12px' }}>⏳</div>
-            <p style={{ fontSize: '14px', color: '#8a7a50' }}>处理中…</p></>
+          <><div style={{ fontSize: '32px', marginBottom: '12px' }}>⏳</div><p style={{ fontSize: '14px', color: '#8a7a50' }}>处理中…</p></>
         )}
         {step === 'error' && (
           <><div style={{ fontSize: '32px', marginBottom: '12px' }}>😞</div>
             <p style={{ fontSize: '14px', color: '#c45a2d', marginBottom: '16px' }}>{errorMsg}</p>
-            <button onClick={createOrder}
-              style={{ padding: '10px 24px', border: 'none', borderRadius: '10px', background: 'linear-gradient(135deg,#b8922a,#9a7a20)', color: '#fff', fontSize: '14px', cursor: 'pointer' }}>重试</button></>
+            <button onClick={createOrder} style={{ padding: '10px 24px', border: 'none', borderRadius: '10px', background: 'linear-gradient(135deg,#b8922a,#9a7a20)', color: '#fff', fontSize: '14px', cursor: 'pointer' }}>重试</button></>
         )}
         {step === 'paying' && (
           <>
             <div style={{ fontSize: '14px', color: '#8a7a50', marginBottom: '4px' }}>紫微 AI 解读 · 永久解锁</div>
             <div style={{ fontSize: '40px', fontWeight: 700, color: '#3d2f10', marginBottom: '20px' }}>¥2.00</div>
-            <p style={{ fontSize: '13px', color: '#8a7a50', marginBottom: '20px', lineHeight: 1.6 }}>
-              正在跳转支付宝…<br />如未跳转请点击下方按钮
-            </p>
-            <a href={payUrl}
-              style={{ display: 'inline-block', padding: '14px 48px', borderRadius: '12px', border: 'none',
-                background: 'linear-gradient(135deg, #1677ff, #4096ff)', color: '#fff', fontSize: '16px',
-                fontWeight: 600, cursor: 'pointer', textDecoration: 'none',
-                boxShadow: '0 4px 16px rgba(22,119,255,0.3)' }}>
-              前往支付宝支付
-            </a>
-            <div style={{ marginTop: '16px' }}>
-              <button onClick={handleVerify}
-                style={{ background: 'none', border: 'none', color: '#8a7a50', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }}>
-                已完成支付，点击验证
-              </button>
-            </div>
+            <p style={{ fontSize: '13px', color: '#8a7a50', marginBottom: '20px' }}>正在跳转支付宝收银台…</p>
+            <button onClick={handleVerify}
+              style={{ background: 'none', border: 'none', color: '#8a7a50', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }}>
+              已完成支付，点击验证
+            </button>
           </>
         )}
         {step === 'paid' && (
