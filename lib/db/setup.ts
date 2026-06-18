@@ -101,6 +101,18 @@ export async function setupDatabase(): Promise<{ success: boolean; error?: strin
       )
     `.catch(() => {});
 
+    // 支付记录表
+    await sql`
+      CREATE TABLE IF NOT EXISTS payments (
+        id SERIAL PRIMARY KEY,
+        out_trade_no TEXT NOT NULL UNIQUE,
+        trade_no TEXT,
+        total_amount TEXT,
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `.catch(() => {});
+
     // RAG 命盘样本库
     await sql`
       CREATE TABLE IF NOT EXISTS rag_samples (

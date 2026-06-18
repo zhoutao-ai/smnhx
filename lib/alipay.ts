@@ -1,108 +1,78 @@
 /**
- * 支付宝当面付客户端
+ * 支付宝电脑网站支付
  *
- * 使用 alipay-sdk v4 + exec() 传统 API
+ * alipay.trade.page.pay — 跳转收银台，用户支付后异步通知验签。
  *
- * 配置环境变量：
- *   ALIPAY_APP_ID          - 应用 ID
- *   ALIPAY_PRIVATE_KEY     - 应用私钥（PKCS1 或 PKCS8）
- *   ALIPAY_PUBLIC_KEY      - 支付宝公钥
- *   ALIPAY_KEY_TYPE        - 私钥类型，默认 PKCS1（PKCS8 需显式指定）
- *   ALIPAY_SANDBOX         - 是否使用沙箱环境（true/false）
- *
- * 沙箱环境：https://openhome.alipaydev.com/develop/sandbox/app
- * 参考：https://opendocs.alipay.com/open/02ekfj
+ * 官方文档：https://opendocs.alipay.com/open/270/105899
  */
 
-import { AlipaySdk, type AlipaySdkConfig } from 'alipay-sdk';
+import { AlipaySdk } from 'alipay-sdk';
 
-/** 是否沙箱环境 */
-export function isSandbox(): boolean {
-  return process.env.ALIPAY_SANDBOX === 'true';
-}
+// ─── 配置 ───────────────────────────────────────────────────
 
-function getAlipayConfig(): AlipaySdkConfig | null {
+function getClient(): AlipaySdk | null {
   const appId = process.env.ALIPAY_APP_ID;
   const privateKey = process.env.ALIPAY_PRIVATE_KEY;
-  const alipayPublicKey = process.env.ALIPAY_PUBLIC_KEY;
+  const publicKey = process.env.ALIPAY_PUBLIC_KEY;
 
-  if (!appId || !privateKey || !alipayPublicKey) {
-    return null;
-  }
+  if (!appId || !privateKey || !publicKey) return null;
 
-  // 沙箱环境特殊处理
-  if (isSandbox()) {
-    // 1. SSL 证书过期问题
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-    // 2. 绕过企业/系统代理，直连沙箱网关
-    process.env.NO_PROXY = [process.env.NO_PROXY, 'alipaydev.com', 'alipay.net']
-      .filter(Boolean)
-      .join(',');
-    // 3. 清除可能干扰的代理变量
-    if (process.env.HTTPS_PROXY) {
-      process.env.NODE_EXTRA_CA_CERTS = process.env.NODE_EXTRA_CA_CERTS ?? '';
-    }
-  }
+  const isSandbox = process.env.ALIPAY_SANDBOX === 'true';
 
-  return {
+  return new AlipaySdk({
     appId,
-    privateKey: privateKey.replace(/\\n/g, '\n'), // 支持 \n 转义
-    alipayPublicKey: alipayPublicKey.replace(/\\n/g, '\n'),
+    privateKey: privateKey.replace(/\\n/g, '\n'),
+    alipayPublicKey: publicKey.replace(/\\n/g, '\n'),
     signType: 'RSA2',
-    keyType: (process.env.ALIPAY_KEY_TYPE as 'PKCS1' | 'PKCS8') ?? 'PKCS1',
-    // 沙箱网关 vs 生产网关
-    gateway: isSandbox()
+    keyType: (process.env.ALIPAY_KEY_TYPE as 'PKCS1' | 'PKCS8') || 'PKCS1',
+    gateway: isSandbox
       ? 'https://openapi.alipaydev.com/gateway.do'
       : 'https://openapi.alipay.com/gateway.do',
-    timeout: 30000, // 沙箱可能较慢，给 30 秒
+    timeout: 30000,
     charset: 'utf-8',
     version: '1.0',
-  };
+  });
 }
 
-let sdk: AlipaySdk | null = null;
+// ─── 工具 ───────────────────────────────────────────────────
 
-function getSdk(): AlipaySdk | null {
-  if (sdk) return sdk;
-  const config = getAlipayConfig();
-  if (!config) return null;
-  sdk = new AlipaySdk(config);
-  return sdk;
-}
-
-/** 生成唯一订单号 */
 export function generateOutTradeNo(): string {
-  const now = Date.now();
+  const ts = Date.now();
   const rand = Math.random().toString(36).slice(2, 8);
-  return `ZIWEI_${now}_${rand}`;
+  return `ZIWEI_${ts}_${rand}`;
 }
 
-export interface CreateOrderResult {
+export function isMockPay(): boolean {
+  return process.env.MOCK_PAY === 'true';
+}
+
+// ─── 创建支付 ───────────────────────────────────────────────
+
+export interface CreatePayResult {
   success: boolean;
-  qrCode?: string;
-  payUrl?: string;
-  payForm?: string;
+  payForm?: string;   // HTML 表单，前端直接渲染自动提交
   outTradeNo?: string;
   error?: string;
 }
 
 /**
- * 电脑网站支付，返回支付宝收银台 URL
- * alipay.trade.page.pay
+ * 生成电脑网站支付表单 HTML。
+ * 前端渲染后自动提交，跳转支付宝收银台。
  */
-export async function createPagePay(
+export function createPagePay(
   outTradeNo: string,
   totalAmount: string,
   subject: string,
   returnUrl: string,
-): Promise<CreateOrderResult> {
-  const client = getSdk();
+  notifyUrl: string,
+): CreatePayResult {
+  const client = getClient();
   if (!client) {
     return { success: false, error: '支付宝未配置' };
   }
 
   try {
-    // pageExec 返回完整 HTML 表单，前端直接渲染并自动提交
+    // pageExec 返回完整的自提交 HTML form
     const payForm = client.pageExec('alipay.trade.page.pay', {
       bizContent: {
         out_trade_no: outTradeNo,
@@ -111,66 +81,19 @@ export async function createPagePay(
         subject,
       },
       returnUrl,
+      notifyUrl,
     });
 
-    // 同时提取 action URL 用于备用
-    const match = payForm.match(/action="([^"]+)"/);
-    const payUrl = match ? match[1] : '';
-
-    return {
-      success: true,
-      payForm,
-      payUrl,
-      outTradeNo,
-    };
+    return { success: true, payForm, outTradeNo };
   } catch (e) {
     const msg = e instanceof Error ? e.message : '支付宝请求异常';
     return { success: false, error: msg };
   }
 }
 
-/**
- * 创建当面付预下单，返回 QR 码链接
- * alipay.trade.precreate
- */
-export async function createPrecreate(
-  outTradeNo: string,
-  totalAmount: string,
-  subject: string,
-): Promise<CreateOrderResult> {
-  const client = getSdk();
-  if (!client) {
-    return { success: false, error: '支付宝未配置（缺少 ALIPAY_APP_ID / ALIPAY_PRIVATE_KEY / ALIPAY_PUBLIC_KEY）' };
-  }
+// ─── 查询支付 ───────────────────────────────────────────────
 
-  try {
-    const result = await client.exec('alipay.trade.precreate', {
-      bizContent: {
-        out_trade_no: outTradeNo,
-        total_amount: totalAmount,
-        subject,
-      },
-    });
-
-    if (result.code === '10000') {
-      return {
-        success: true,
-        qrCode: result.qr_code as string,
-        outTradeNo: result.out_trade_no as string,
-      };
-    }
-
-    return {
-      success: false,
-      error: `${result.sub_msg ?? result.msg ?? '未知错误'} (${result.sub_code ?? result.code})`,
-    };
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : '支付宝请求异常';
-    return { success: false, error: msg };
-  }
-}
-
-export interface QueryOrderResult {
+export interface QueryPayResult {
   success: boolean;
   paid: boolean;
   tradeStatus?: string;
@@ -178,20 +101,16 @@ export interface QueryOrderResult {
 }
 
 /**
- * 查询订单支付状态
+ * 查询订单支付状态。
  * alipay.trade.query
  */
-export async function queryOrder(outTradeNo: string): Promise<QueryOrderResult> {
-  const client = getSdk();
-  if (!client) {
-    return { success: false, paid: false, error: '支付宝未配置' };
-  }
+export async function queryPay(outTradeNo: string): Promise<QueryPayResult> {
+  const client = getClient();
+  if (!client) return { success: false, paid: false, error: '支付宝未配置' };
 
   try {
     const result = await client.exec('alipay.trade.query', {
-      bizContent: {
-        out_trade_no: outTradeNo,
-      },
+      bizContent: { out_trade_no: outTradeNo },
     });
 
     if (result.code === '10000') {
@@ -209,7 +128,28 @@ export async function queryOrder(outTradeNo: string): Promise<QueryOrderResult> 
       error: `${result.sub_msg ?? result.msg} (${result.sub_code ?? result.code})`,
     };
   } catch (e) {
-    const msg = e instanceof Error ? e.message : '支付宝请求异常';
+    const msg = e instanceof Error ? e.message : '查询异常';
     return { success: false, paid: false, error: msg };
+  }
+}
+
+// ─── 验签（异步通知） ──────────────────────────────────────
+
+/**
+ * 验证支付宝异步通知签名。
+ * 返回验证通过的参数，或 null（验签失败）。
+ */
+export function verifyNotifySign(params: Record<string, string>): Record<string, string> | null {
+  const client = getClient();
+  if (!client) return null;
+
+  try {
+    const sign = params.sign;
+    if (!sign) return null;
+
+    const valid = (client as any).checkNotifySign(sign, params as any);
+    return valid ? params : null;
+  } catch {
+    return null;
   }
 }
