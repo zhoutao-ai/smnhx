@@ -6,7 +6,7 @@ import { setUnlocked } from '@/lib/usage';
 export default function PayPage() {
   const [step, setStep] = useState<'loading' | 'paying' | 'paid' | 'error'>('loading');
   const [outTradeNo, setOutTradeNo] = useState('');
-  const [payForm, setPayForm] = useState('');
+  const [payUrl, setPayUrl] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const pollingRef = useRef<ReturnType<typeof setInterval>>();
 
@@ -57,9 +57,11 @@ export default function PayPage() {
         window.location.href = data.payUrl;
         return;
       }
-      setPayForm(data.payForm ?? '');
+      setPayUrl(data.payUrl ?? '');
       setStep('paying');
-      // 开始轮询
+      // 直接跳转支付宝
+      if (data.payUrl) window.location.href = data.payUrl;
+      // 同时开始轮询（页面可能还在等待跳转）
       pollingRef.current = setInterval(() => checkPayment(data.outTradeNo), 3000);
     } catch {
       setErrorMsg('网络异常');
@@ -116,17 +118,6 @@ export default function PayPage() {
     }
   };
 
-  // ─── 自动提交表单 ──────────────────────────────────────
-  useEffect(() => {
-    if (!payForm) return;
-    const div = document.getElementById('alipay-form-container');
-    if (div) {
-      div.innerHTML = payForm;
-      const form = div.querySelector('form');
-      if (form) setTimeout(() => (form as HTMLFormElement).submit(), 100);
-    }
-  }, [payForm]);
-
   // ─── UI ────────────────────────────────────────────────
   const card = {
     minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -157,12 +148,22 @@ export default function PayPage() {
           <>
             <div style={{ fontSize: '14px', color: '#8a7a50', marginBottom: '4px' }}>紫微 AI 解读 · 永久解锁</div>
             <div style={{ fontSize: '40px', fontWeight: 700, color: '#3d2f10', marginBottom: '20px' }}>¥2.00</div>
-            <div id="alipay-form-container" style={{ display: 'none' }} />
-            <p style={{ fontSize: '13px', color: '#8a7a50' }}>正在跳转支付宝…</p>
-            <button onClick={handleVerify}
-              style={{ background: 'none', border: 'none', color: '#8a7a50', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline', marginTop: '12px' }}>
-              已完成支付，点击验证
-            </button>
+            <p style={{ fontSize: '13px', color: '#8a7a50', marginBottom: '20px', lineHeight: 1.6 }}>
+              正在跳转支付宝…<br />如未跳转请点击下方按钮
+            </p>
+            <a href={payUrl}
+              style={{ display: 'inline-block', padding: '14px 48px', borderRadius: '12px', border: 'none',
+                background: 'linear-gradient(135deg, #1677ff, #4096ff)', color: '#fff', fontSize: '16px',
+                fontWeight: 600, cursor: 'pointer', textDecoration: 'none',
+                boxShadow: '0 4px 16px rgba(22,119,255,0.3)' }}>
+              前往支付宝支付
+            </a>
+            <div style={{ marginTop: '16px' }}>
+              <button onClick={handleVerify}
+                style={{ background: 'none', border: 'none', color: '#8a7a50', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }}>
+                已完成支付，点击验证
+              </button>
+            </div>
           </>
         )}
         {step === 'paid' && (
