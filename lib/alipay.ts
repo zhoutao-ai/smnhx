@@ -80,8 +80,53 @@ export function generateOutTradeNo(): string {
 export interface CreateOrderResult {
   success: boolean;
   qrCode?: string;
+  payUrl?: string;
   outTradeNo?: string;
   error?: string;
+}
+
+/**
+ * 电脑网站支付，返回支付宝收银台 URL
+ * alipay.trade.page.pay
+ */
+export async function createPagePay(
+  outTradeNo: string,
+  totalAmount: string,
+  subject: string,
+  returnUrl: string,
+): Promise<CreateOrderResult> {
+  const client = getSdk();
+  if (!client) {
+    return { success: false, error: '支付宝未配置' };
+  }
+
+  try {
+    const bizContent = {
+      out_trade_no: outTradeNo,
+      product_code: 'FAST_INSTANT_TRADE_PAY',
+      total_amount: totalAmount,
+      subject,
+    };
+
+    const result = client.pageExec('alipay.trade.page.pay', {
+      bizContent,
+      returnUrl,
+      notifyUrl: '',
+    });
+
+    const payUrl = isSandbox()
+      ? `https://openapi.alipaydev.com/gateway.do?${result}`
+      : `https://openapi.alipay.com/gateway.do?${result}`;
+
+    return {
+      success: true,
+      payUrl,
+      outTradeNo,
+    };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : '支付宝请求异常';
+    return { success: false, error: msg };
+  }
 }
 
 /**

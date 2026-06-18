@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { setUnlocked } from '@/lib/usage';
 
 export default function PayPage() {
   const [step, setStep] = useState<'loading' | 'ready' | 'paid' | 'error'>('loading');
+  const [outTradeNo, setOutTradeNo] = useState('');
+  const [payUrl, setPayUrl] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   // 支付功能关闭时显示提示
   if (process.env.NEXT_PUBLIC_ENABLE_PAY === 'false') {
@@ -24,144 +26,105 @@ export default function PayPage() {
       </div>
     );
   }
-  const [qrCode, setQrCode] = useState('');
-  const [outTradeNo, setOutTradeNo] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  const [isMobile, setIsMobile] = useState(false);
-  const [pollCount, setPollCount] = useState(0);
-  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [isSandbox, setIsSandbox] = useState(false);
 
-  // 检测移动端 & 沙箱模式
+  // 检查是否从支付宝同步跳回
   useEffect(() => {
-    setIsMobile(/Alipay|iPhone|Android/i.test(navigator.userAgent));
-    setIsSandbox(process.env.NEXT_PUBLIC_ALIPAY_SANDBOX === 'true');
-  }, []);
+    const params = new URLSearchParams(window.location.search);
+    const tradeNo = params.get('outTradeNo');
+    const mockPaid = params.get('mock');
 
-  // 创建订单
-  useEffect(() => {
-    const createOrder = async () => {
-      try {
-        const res = await fetch('/api/pay/create', { method: 'POST' });
-        const data = await res.json();
-        if (data.success) {
-          setQrCode(data.qrCode);
-          setOutTradeNo(data.outTradeNo);
-          setStep('ready');
-        } else {
-          setErrorMsg(data.error ?? '创建订单失败');
-          setStep('error');
-        }
-      } catch {
-        setErrorMsg('网络异常，请稍后重试');
-        setStep('error');
-      }
-    };
-    createOrder();
-  }, []);
-
-  // 轮询支付状态（每 3 秒查一次）
-  useEffect(() => {
-    if (step !== 'ready' || !outTradeNo) return;
-
-    pollingRef.current = setInterval(async () => {
-      try {
-        setPollCount(c => c + 1);
-        const res = await fetch('/api/pay/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ outTradeNo }),
-        });
-        const data = await res.json();
-        if (data.paid) {
-          setUnlocked(true);
-          setStep('paid');
-          if (pollingRef.current) clearInterval(pollingRef.current);
-        }
-      } catch { /* 继续轮询 */ }
-    }, 3000);
-
-    // 最多轮询 5 分钟
-    const timeout = setTimeout(() => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-        setErrorMsg('支付超时，请确认是否已完成付款');
-        setStep('error');
-      }
-    }, 5 * 60 * 1000);
-
-    return () => {
-      if (pollingRef.current) clearInterval(pollingRef.current);
-      clearTimeout(timeout);
-    };
-  }, [step, outTradeNo]);
-
-  // 手动验证支付（传 manual:true，mock 模式下仅手动确认才通过）
-  const handleVerify = async () => {
-    if (!outTradeNo) {
-      // mock 模式下可能没有真实订单号，直接解锁
-      setUnlocked(true);
-      setStep('paid');
+    // Mock 模式：直接标记支付成功
+    if (mockPaid === 'paid' && tradeNo) {
+      setOutTradeNo(tradeNo);
+      verifyAndUnlock(tradeNo);
       return;
     }
+
+    // 生产环境：从支付宝跳回，验证支付
+    if (tradeNo) {
+      setOutTradeNo(tradeNo);
+      verifyAndUnlock(tradeNo);
+      return;
+    }
+
+    // 首次进入：创建订单
+    createOrder();
+  }, []); // eslint-disable-line
+
+  const createOrder = async () => {
+    try {
+      const res = await fetch('/api/pay/create', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setOutTradeNo(data.outTradeNo);
+        if (data.mock) {
+          // Mock 模式：直接跳回
+          window.location.href = data.payUrl;
+        } else {
+          // 真实支付：跳转支付宝收银台
+          setPayUrl(data.payUrl);
+          setStep('ready');
+        }
+      } else {
+        setErrorMsg(data.error ?? '创建订单失败');
+        setStep('error');
+      }
+    } catch {
+      setErrorMsg('网络异常，请稍后重试');
+      setStep('error');
+    }
+  };
+
+  const verifyAndUnlock = async (tradeNo: string) => {
+    setStep('loading');
     try {
       const res = await fetch('/api/pay/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ outTradeNo, manual: true }),
+        body: JSON.stringify({ outTradeNo: tradeNo }),
       });
       const data = await res.json();
       if (data.paid) {
         setUnlocked(true);
         setStep('paid');
-        if (pollingRef.current) clearInterval(pollingRef.current);
       } else {
-        alert('暂未收到付款，请确认已扫码支付');
+        setErrorMsg('暂未收到付款，请确认已完成支付');
+        setStep('ready');
       }
     } catch {
-      alert('网络异常，请稍后重试');
+      setErrorMsg('验证失败，请重试');
+      setStep('ready');
     }
   };
 
-  // 唤起支付宝 APP
-  const handleOpenAlipay = () => {
-    const alipayScheme = `alipays://platformapi/startapp?saId=10000007&qrcode=${encodeURIComponent(qrCode)}`;
-    window.open(alipayScheme, '_blank');
-    setTimeout(() => {
-      window.open(qrCode, '_blank');
-    }, 500);
+  const cardStyle = {
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'linear-gradient(180deg, #fdf8ee 0%, #f5efe0 50%, #ede0c0 100%)',
+    fontFamily: '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif',
+  };
+
+  const innerCard = {
+    background: '#fff',
+    borderRadius: '20px',
+    padding: '40px 36px',
+    maxWidth: '420px',
+    width: '100%',
+    textAlign: 'center' as const,
+    boxShadow: '0 12px 48px rgba(60,30,10,0.10), 0 2px 8px rgba(60,30,10,0.05)',
+    border: '1px solid rgba(184,146,42,0.12)',
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(180deg, #faf8f2 0%, #f3ede0 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '16px',
-      fontFamily: '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif',
-    }}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        style={{
-          background: '#fff',
-          borderRadius: '20px',
-          padding: '32px 28px',
-          maxWidth: '380px',
-          width: '100%',
-          textAlign: 'center',
-          boxShadow: '0 12px 48px rgba(60,30,10,0.12), 0 2px 8px rgba(60,30,10,0.06)',
-          border: '1px solid rgba(184,146,42,0.15)',
-        }}
-      >
+    <div style={cardStyle}>
+      <div style={innerCard}>
         {/* ══ 加载中 ══ */}
         {step === 'loading' && (
           <>
             <div style={{ fontSize: '32px', marginBottom: '12px' }}>⏳</div>
-            <p style={{ fontSize: '14px', color: '#8a7a50' }}>正在创建订单…</p>
+            <p style={{ fontSize: '14px', color: '#8a7a50' }}>处理中…</p>
           </>
         )}
 
@@ -169,162 +132,94 @@ export default function PayPage() {
         {step === 'error' && (
           <>
             <div style={{ fontSize: '32px', marginBottom: '12px' }}>😞</div>
-            <p style={{ fontSize: '14px', color: '#c45a2d', marginBottom: '16px' }}>
-              {errorMsg}
-            </p>
+            <p style={{ fontSize: '14px', color: '#c45a2d', marginBottom: '16px' }}>{errorMsg}</p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => { setStep('loading'); createOrder(); }}
               style={{
-                padding: '10px 24px',
+                padding: '10px 28px', border: 'none', borderRadius: '10px',
                 background: 'linear-gradient(135deg, #b8922a, #9a7a20)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '10px',
-                fontSize: '14px',
-                cursor: 'pointer',
+                color: '#fff', fontSize: '14px', cursor: 'pointer',
               }}
-            >
-              重试
-            </button>
+            >重试</button>
           </>
         )}
 
         {/* ══ 待支付 ══ */}
         {step === 'ready' && (
           <>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+            <div style={{ marginBottom: '8px' }}>
               <span style={{ fontSize: '14px', color: '#8a7a50' }}>紫微 AI 解读 · 永久解锁</span>
-              {isSandbox && (
-                <span style={{
-                  fontSize: '10px',
-                  padding: '2px 8px',
-                  borderRadius: '10px',
-                  background: 'rgba(255,152,0,0.15)',
-                  color: '#e65100',
-                  border: '1px solid rgba(255,152,0,0.3)',
-                  fontWeight: 500,
-                }}>
-                  🧪 沙箱
-                </span>
-              )}
             </div>
-            <div style={{ fontSize: '36px', fontWeight: 700, color: '#3d2f10', marginBottom: '20px' }}>
-              ¥2<span style={{ fontSize: '16px', fontWeight: 400 }}>.00</span>
+            <div style={{ fontSize: '40px', fontWeight: 700, color: '#3d2f10', marginBottom: '24px' }}>
+              ¥2<span style={{ fontSize: '18px', fontWeight: 400 }}>.00</span>
             </div>
 
-            {/* QR 码 */}
-            <div style={{
-              padding: '16px',
-              background: '#fafaf8',
-              borderRadius: '12px',
-              border: '1px solid rgba(184,146,42,0.12)',
-              marginBottom: '16px',
-              display: 'inline-block',
-            }}>
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCode)}`}
-                alt="支付宝收款码"
-                width={200}
-                height={200}
-                style={{ display: 'block' }}
-              />
-            </div>
-
-            <p style={{ fontSize: '12px', color: '#8a7a50', marginBottom: '20px', lineHeight: 1.6 }}>
-              {isMobile
-                ? '点击下方按钮，用支付宝扫码或直接跳转支付'
-                : '打开支付宝「扫一扫」扫描上方二维码'}
+            <p style={{ fontSize: '13px', color: '#8a7a50', marginBottom: '24px', lineHeight: 1.7 }}>
+              点击下方按钮跳转支付宝完成支付<br />支付完成后自动返回本页
             </p>
 
-            {/* 操作按钮 */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {isMobile && (
-                <button
-                  onClick={handleOpenAlipay}
-                  style={{
-                    width: '100%',
-                    padding: '12px 24px',
-                    background: 'linear-gradient(135deg, #1677ff 0%, #0050b3 100%)',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '15px',
-                    fontWeight: 600,
-                    letterSpacing: '0.05em',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(22,119,255,0.3)',
-                  }}
-                >
-                  打开支付宝支付
-                </button>
-              )}
+            <a
+              href={payUrl}
+              style={{
+                display: 'inline-block',
+                padding: '14px 48px',
+                borderRadius: '12px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #1677ff, #4096ff)',
+                color: '#fff',
+                fontSize: '16px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                textDecoration: 'none',
+                letterSpacing: '0.05em',
+                boxShadow: '0 4px 16px rgba(22,119,255,0.3)',
+              }}
+            >
+              前往支付宝支付
+            </a>
 
+            <div style={{ marginTop: '16px' }}>
               <button
-                onClick={handleVerify}
+                onClick={() => verifyAndUnlock(outTradeNo)}
                 style={{
-                  width: '100%',
-                  padding: '12px 24px',
-                  background: 'linear-gradient(135deg, #b8922a 0%, #9a7a20 100%)',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  letterSpacing: '0.05em',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(184,146,42,0.25)',
+                  background: 'none', border: 'none', color: '#8a7a50',
+                  fontSize: '12px', cursor: 'pointer', textDecoration: 'underline',
                 }}
               >
-                已完成支付
+                已完成支付，点击验证
               </button>
             </div>
-
-            {/* 轮询提示 */}
-            {pollCount > 0 && (
-              <p style={{ fontSize: '10px', color: '#a09070', marginTop: '12px' }}>
-                已查询 {pollCount} 次，支付后自动跳转
-              </p>
-            )}
-
-            <p style={{ fontSize: '10px', color: '#a09070', marginTop: '8px', lineHeight: 1.5 }}>
-              支付遇到问题？请联系微信 suixinZT1204
-            </p>
           </>
         )}
 
         {/* ══ 支付成功 ══ */}
         {step === 'paid' && (
           <>
-            <div style={{ fontSize: '48px', marginBottom: '12px' }}>🎉</div>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#3d2f10', margin: '0 0 8px' }}>
+            <div style={{ fontSize: '48px', marginBottom: '12px' }}>✅</div>
+            <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#3d2f10', marginBottom: '8px' }}>
               支付成功！
             </h2>
-            <p style={{ fontSize: '14px', color: '#8a7a50', marginBottom: '20px', lineHeight: 1.6 }}>
+            <p style={{ fontSize: '13px', color: '#8a7a50', marginBottom: '20px', lineHeight: 1.6 }}>
               AI 解读已永久解锁，现在可以无限次使用了
             </p>
-            <button
-              onClick={() => {
-                window.location.href = '/chart';
-              }}
+            <a
+              href="/chart"
               style={{
-                width: '100%',
-                padding: '12px 24px',
-                background: 'linear-gradient(135deg, #b8922a 0%, #9a7a20 100%)',
+                display: 'inline-block',
+                padding: '12px 36px',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #b8922a, #d4a843)',
                 color: '#fff',
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '15px',
-                fontWeight: 500,
-                letterSpacing: '0.1em',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(184,146,42,0.3)',
+                fontSize: '14px',
+                fontWeight: 600,
+                textDecoration: 'none',
               }}
             >
-              返回命盘 →
-            </button>
+              开始使用
+            </a>
           </>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

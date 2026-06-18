@@ -1,38 +1,38 @@
 /**
  * POST /api/pay/create
  *
- * 创建支付宝当面付订单，返回 QR 码链接。
+ * 创建支付宝电脑网站支付订单，返回支付跳转 URL。
  * 真实支付时调用支付宝 API；Mock 模式直接返回模拟数据。
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createPrecreate, generateOutTradeNo } from '@/lib/alipay';
+import { createPagePay, generateOutTradeNo } from '@/lib/alipay';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   const outTradeNo = generateOutTradeNo();
   const isMock = process.env.MOCK_PAY === 'true';
+  const origin = request.headers.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.topsmtao.win';
 
   if (isMock) {
-    // Mock 模式：直接返回模拟 QR 码
-    const mockQrUrl = process.env.NEXT_PUBLIC_ALIPAY_URL ?? 'https://qr.alipay.com/mock';
     return NextResponse.json({
       success: true,
-      qrCode: mockQrUrl,
+      payUrl: `${origin}/pay?mock=paid&outTradeNo=${outTradeNo}`,
       outTradeNo,
       mock: true,
     });
   }
 
-  // ─── 真实支付：调用支付宝当面付预下单 ───
-  const result = await createPrecreate(outTradeNo, '2.00', '紫微AI解读·永久解锁');
+  // ─── 真实支付：电脑网站支付 ───
+  const returnUrl = `${origin}/pay?outTradeNo=${outTradeNo}`;
+  const result = await createPagePay(outTradeNo, '2.00', '紫微AI解读·永久解锁', returnUrl);
 
   if (result.success) {
     return NextResponse.json({
       success: true,
-      qrCode: result.qrCode,
+      payUrl: result.payUrl,
       outTradeNo: result.outTradeNo ?? outTradeNo,
     });
   }
