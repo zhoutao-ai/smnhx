@@ -3,10 +3,23 @@
 import { useState, useEffect } from 'react';
 import { setUnlocked } from '@/lib/usage';
 
+/** 自动提交支付宝表单 */
+function PayFormSubmitter() {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const form = document.querySelector('form');
+      if (form) (form as HTMLFormElement).submit();
+    }, 200);
+    return () => clearTimeout(timer);
+  }, []);
+  return null;
+}
+
 export default function PayPage() {
   const [step, setStep] = useState<'loading' | 'ready' | 'paid' | 'error'>('loading');
   const [outTradeNo, setOutTradeNo] = useState('');
   const [payUrl, setPayUrl] = useState('');
+  const [payForm, setPayForm] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
   // 支付功能关闭时显示提示
@@ -58,11 +71,10 @@ export default function PayPage() {
       if (data.success) {
         setOutTradeNo(data.outTradeNo);
         if (data.mock) {
-          // Mock 模式：直接跳回
           window.location.href = data.payUrl;
         } else {
-          // 真实支付：跳转支付宝收银台
-          setPayUrl(data.payUrl);
+          setPayUrl(data.payUrl ?? '');
+          setPayForm(data.payForm ?? '');
           setStep('ready');
         }
       } else {
@@ -158,25 +170,24 @@ export default function PayPage() {
               点击下方按钮跳转支付宝完成支付<br />支付完成后自动返回本页
             </p>
 
-            <a
-              href={payUrl}
-              style={{
-                display: 'inline-block',
-                padding: '14px 48px',
-                borderRadius: '12px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #1677ff, #4096ff)',
-                color: '#fff',
-                fontSize: '16px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                textDecoration: 'none',
-                letterSpacing: '0.05em',
-                boxShadow: '0 4px 16px rgba(22,119,255,0.3)',
-              }}
-            >
-              前往支付宝支付
-            </a>
+            {/* 支付宝表单 — 自动提交 */}
+            {payForm ? (
+              <div>
+                <div ref={el => { if (el) el.innerHTML = payForm; }} />
+                <PayFormSubmitter />
+              </div>
+            ) : (
+              <a href={payUrl} target="_blank" rel="noreferrer"
+                style={{
+                  display: 'inline-block', padding: '14px 48px', borderRadius: '12px',
+                  border: 'none', background: 'linear-gradient(135deg, #1677ff, #4096ff)',
+                  color: '#fff', fontSize: '16px', fontWeight: 600, cursor: 'pointer',
+                  textDecoration: 'none', letterSpacing: '0.05em',
+                  boxShadow: '0 4px 16px rgba(22,119,255,0.3)',
+                }}
+              >前往支付宝支付</a>
+            )}
+            <p style={{ fontSize: '12px', color: '#8a7a50', margin: '12px 0' }}>正在跳转支付宝…</p>
 
             <div style={{ marginTop: '16px' }}>
               <button

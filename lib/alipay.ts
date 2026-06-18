@@ -81,6 +81,7 @@ export interface CreateOrderResult {
   success: boolean;
   qrCode?: string;
   payUrl?: string;
+  payForm?: string;
   outTradeNo?: string;
   error?: string;
 }
@@ -101,8 +102,8 @@ export async function createPagePay(
   }
 
   try {
-    // pageExec 返回完整 HTML 表单，从 action 属性提取跳转 URL
-    const formHtml = client.pageExec('alipay.trade.page.pay', {
+    // pageExec 返回完整 HTML 表单，前端直接渲染并自动提交
+    const payForm = client.pageExec('alipay.trade.page.pay', {
       bizContent: {
         out_trade_no: outTradeNo,
         product_code: 'FAST_INSTANT_TRADE_PAY',
@@ -112,16 +113,13 @@ export async function createPagePay(
       returnUrl,
     });
 
-    // 从 HTML form action 中提取完整 URL
-    const match = formHtml.match(/action="([^"]+)"/);
+    // 同时提取 action URL 用于备用
+    const match = payForm.match(/action="([^"]+)"/);
     const payUrl = match ? match[1] : '';
-
-    if (!payUrl) {
-      return { success: false, error: '生成支付链接失败' };
-    }
 
     return {
       success: true,
+      payForm,
       payUrl,
       outTradeNo,
     };

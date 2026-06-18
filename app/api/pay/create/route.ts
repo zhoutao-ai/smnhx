@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       payUrl: result.payUrl,
+      payForm: (result as any).payForm,
       outTradeNo: result.outTradeNo ?? outTradeNo,
     });
   }
