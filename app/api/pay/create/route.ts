@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   const outTradeNo = generateOutTradeNo();
   const isMock = process.env.MOCK_PAY === 'true';
-  const origin = request.headers.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.topsmtao.win';
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://zwdssm.top';
 
   if (isMock) {
     return NextResponse.json({
