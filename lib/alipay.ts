@@ -101,24 +101,24 @@ export async function createPagePay(
   }
 
   try {
-    const bizContent = {
-      out_trade_no: outTradeNo,
-      product_code: 'FAST_INSTANT_TRADE_PAY',
-      total_amount: totalAmount,
-      subject,
-    };
-
-    // pageExec 生成签名的查询字符串，拼上网关就是完整跳转 URL
-    const queryString = client.pageExec('alipay.trade.page.pay', {
-      bizContent,
+    // pageExec 返回完整 HTML 表单，从 action 属性提取跳转 URL
+    const formHtml = client.pageExec('alipay.trade.page.pay', {
+      bizContent: {
+        out_trade_no: outTradeNo,
+        product_code: 'FAST_INSTANT_TRADE_PAY',
+        total_amount: totalAmount,
+        subject,
+      },
       returnUrl,
     });
 
-    const gateway = isSandbox()
-      ? 'https://openapi.alipaydev.com/gateway.do'
-      : 'https://openapi.alipay.com/gateway.do';
+    // 从 HTML form action 中提取完整 URL
+    const match = formHtml.match(/action="([^"]+)"/);
+    const payUrl = match ? match[1] : '';
 
-    const payUrl = `${gateway}?${queryString}`;
+    if (!payUrl) {
+      return { success: false, error: '生成支付链接失败' };
+    }
 
     return {
       success: true,
