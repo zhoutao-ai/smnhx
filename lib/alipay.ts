@@ -101,12 +101,12 @@ export async function createPagePay(
   }
 
   try {
-    const bizContent = JSON.stringify({
+    const bizContent = {
       out_trade_no: outTradeNo,
       product_code: 'FAST_INSTANT_TRADE_PAY',
       total_amount: totalAmount,
       subject,
-    });
+    };
 
     // pageExec 生成签名的查询字符串，拼上网关就是完整跳转 URL
     const queryString = client.pageExec('alipay.trade.page.pay', {
