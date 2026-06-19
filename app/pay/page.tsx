@@ -27,8 +27,8 @@ interface PayVerifyResponse {
 export default function PayPage() {
   const [step, setStep] = useState<PayStep>('loading');
   const [outTradeNo, setOutTradeNo] = useState('');
-  const [amount, setAmount] = useState('2.00');
-  const [subject, setSubject] = useState('紫微AI解读永久解锁');
+  const [amount, setAmount] = useState('2.90');
+  const [subject, setSubject] = useState('2.9元解锁永久AI解读命盘');
   const [payForm, setPayForm] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -77,8 +77,8 @@ export default function PayPage() {
       }
 
       setOutTradeNo(data.outTradeNo);
-      setAmount(data.amount ?? '2.00');
-      setSubject(data.subject ?? '紫微AI解读永久解锁');
+      setAmount(data.amount ?? '2.90');
+      setSubject(data.subject ?? '2.9元解锁永久AI解读命盘');
 
       if (data.mock && data.payUrl) {
         window.location.href = data.payUrl;

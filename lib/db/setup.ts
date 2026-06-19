@@ -48,8 +48,8 @@ export async function setupDatabase(): Promise<{ success: boolean; error?: strin
         trade_no TEXT,
         provider TEXT NOT NULL DEFAULT 'alipay',
         product_code TEXT NOT NULL DEFAULT 'ziwei_ai_unlock_lifetime',
-        subject TEXT NOT NULL DEFAULT '紫微AI解读永久解锁',
-        total_amount TEXT NOT NULL DEFAULT '2.00',
+        subject TEXT NOT NULL DEFAULT '2.9元解锁永久AI解读命盘',
+        total_amount TEXT NOT NULL DEFAULT '2.90',
         currency TEXT NOT NULL DEFAULT 'CNY',
         status TEXT NOT NULL DEFAULT 'pending',
         buyer_id TEXT,
@@ -63,7 +63,7 @@ export async function setupDatabase(): Promise<{ success: boolean; error?: strin
 
     await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS provider TEXT NOT NULL DEFAULT 'alipay'`;
     await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS product_code TEXT NOT NULL DEFAULT 'ziwei_ai_unlock_lifetime'`;
-    await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS subject TEXT NOT NULL DEFAULT '紫微AI解读永久解锁'`;
+    await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS subject TEXT NOT NULL DEFAULT '2.9元解锁永久AI解读命盘'`;
     await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'CNY'`;
     await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS buyer_id TEXT`;
     await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS buyer_logon_id TEXT`;

@@ -37,8 +37,8 @@ export default function PaywallModal({ open, onClose }: PaywallModalProps) {
 
           <div style={styles.body}>
             <div style={styles.offer}>
-              <span style={styles.price}>¥2</span>
-              <span>永久解锁 AI 命盘解读</span>
+              <span style={styles.price}>¥2.9</span>
+              <span>解锁永久 AI 解读命盘</span>
             </div>
 
             <button style={styles.payButton} onClick={() => { window.location.href = '/pay'; }}>

@@ -19,8 +19,8 @@ export interface AlipayConfig {
 export function getPaymentProduct(): PaymentProduct {
   return {
     code: PAYMENT_PRODUCT_CODE,
-    subject: process.env.PAY_PRODUCT_SUBJECT ?? '紫微AI解读永久解锁',
-    amount: normalizeAmount(process.env.PAY_PRODUCT_AMOUNT ?? '0.20'),
+    subject: process.env.PAY_PRODUCT_SUBJECT ?? '2.9元解锁永久AI解读命盘',
+    amount: normalizeAmount(process.env.PAY_PRODUCT_AMOUNT ?? '2.90'),
     currency: 'CNY',
   };
 }
@@ -62,6 +62,6 @@ function normalizePem(value: string): string {
 
 function normalizeAmount(value: string): string {
   const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) return '2.00';
+  if (!Number.isFinite(parsed) || parsed <= 0) return '2.90';
   return parsed.toFixed(2);
 }
