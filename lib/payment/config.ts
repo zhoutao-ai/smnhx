@@ -20,7 +20,7 @@ export function getPaymentProduct(): PaymentProduct {
   return {
     code: PAYMENT_PRODUCT_CODE,
     subject: process.env.PAY_PRODUCT_SUBJECT ?? '紫微AI解读永久解锁',
-    amount: normalizeAmount(process.env.PAY_PRODUCT_AMOUNT ?? '2.00'),
+    amount: normalizeAmount(process.env.PAY_PRODUCT_AMOUNT ?? '0.20'),
     currency: 'CNY',
   };
 }
