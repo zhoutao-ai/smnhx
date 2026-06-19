@@ -1,0 +1,15 @@
+{
+  "description": "smnhx WeChat Mini Program",
+  "appid": "touristappid",
+  "projectname": "smnhx-miniprogram",
+  "miniprogramRoot": "./",
+  "compileType": "miniprogram",
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "postcss": true,
+    "minified": true,
+    "enhance": true
+  },
+  "libVersion": "latest"
+}

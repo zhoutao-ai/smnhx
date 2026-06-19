@@ -1,0 +1,15 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/chart/chart",
+    "pages/pay/pay"
+  ],
+  "window": {
+    "navigationBarTitleText": "紫微命盘",
+    "navigationBarBackgroundColor": "#14110d",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f8f4ea"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,49 @@
+<view class="page chart-page" wx:if="{{chart}}">
+  <view class="summary panel">
+    <view>
+      <text class="eyebrow">AI 解读命盘</text>
+      <text class="name">{{birthLabel}}</text>
+    </view>
+    <view class="stats">
+      <view>
+        <text class="stat-value">{{chart.currentAge}}</text>
+        <text class="stat-label">当前年龄</text>
+      </view>
+      <view>
+        <text class="stat-value">{{chart.wuxingJu}}</text>
+        <text class="stat-label">五行局</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="ai panel">
+    <view class="ai-head">
+      <text class="section-title">AI 解读</text>
+      <text class="unlock">{{unlocked ? '已解锁' : '2.9 元永久解锁'}}</text>
+    </view>
+    <view class="ask-row">
+      <input class="question" value="{{question}}" bindinput="onQuestionInput" placeholder="追问：我的感情和事业如何走向" />
+      <button class="ask-button" loading="{{interpreting}}" disabled="{{interpreting}}" bindtap="onInterpret">AI解读</button>
+    </view>
+    <button wx:if="{{!unlocked}}" class="secondary-button pay-button" bindtap="goPay">2.9元解锁永久AI解读命盘</button>
+    <view class="answer" wx:if="{{answer}}">
+      <text>{{answer}}</text>
+    </view>
+  </view>
+
+  <view class="palace-list">
+    <view class="palace panel" wx:for="{{palaces}}" wx:key="branch">
+      <view class="palace-head">
+        <text class="palace-name">{{item.name}}</text>
+        <text class="palace-age">{{item.ageText}}</text>
+      </view>
+      <text class="stars">{{item.starsText}}</text>
+    </view>
+  </view>
+</view>
+
+<view class="page empty" wx:else>
+  <text class="title">暂无命盘</text>
+  <text class="muted">请先填写出生信息起盘。</text>
+  <button class="primary-button" bindtap="goHome">返回起盘</button>
+</view>

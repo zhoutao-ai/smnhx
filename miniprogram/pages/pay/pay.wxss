@@ -1,0 +1,52 @@
+.pay-page {
+  padding-top: 72rpx;
+}
+
+.product {
+  padding: 44rpx 34rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.eyebrow {
+  color: #9b6c24;
+  font-size: 24rpx;
+  letter-spacing: 6rpx;
+}
+
+.product-title {
+  margin-top: 18rpx;
+  color: #1f170f;
+  font-size: 44rpx;
+  font-weight: 800;
+}
+
+.price {
+  margin-top: 26rpx;
+  color: #8f5d18;
+  font-size: 76rpx;
+  font-weight: 800;
+}
+
+.desc {
+  margin-top: 20rpx;
+  color: #6d5d49;
+  font-size: 26rpx;
+  line-height: 1.7;
+}
+
+.pay-action {
+  margin-top: 34rpx;
+}
+
+.notice {
+  margin-top: 28rpx;
+  padding: 24rpx;
+  border-radius: 14rpx;
+  background: rgba(143, 93, 24, 0.08);
+  color: #7d7162;
+  font-size: 24rpx;
+  line-height: 1.7;
+}

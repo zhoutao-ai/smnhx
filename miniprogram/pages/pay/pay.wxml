@@ -1,0 +1,16 @@
+<view class="page pay-page">
+  <view class="panel product">
+    <text class="eyebrow">永久解锁</text>
+    <text class="product-title">AI解读命盘</text>
+    <text class="price">¥2.9</text>
+    <text class="desc">解锁后可在小程序内持续向 AI 追问命盘内容。</text>
+  </view>
+
+  <button class="primary-button pay-action" loading="{{loading}}" disabled="{{loading}}" bindtap="onPay">
+    {{loading ? '正在拉起支付' : '微信支付解锁'}}
+  </button>
+
+  <view class="notice">
+    <text>当前小程序支付需要微信商户号配置。配置完成后，本页会直接拉起微信支付。</text>
+  </view>
+</view>

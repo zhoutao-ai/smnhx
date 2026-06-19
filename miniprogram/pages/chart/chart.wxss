@@ -1,0 +1,153 @@
+.chart-page {
+  padding-bottom: 56rpx;
+}
+
+.summary {
+  padding: 30rpx;
+  display: flex;
+  justify-content: space-between;
+  gap: 24rpx;
+  align-items: center;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 10rpx;
+  color: #9b6c24;
+  font-size: 22rpx;
+  letter-spacing: 5rpx;
+}
+
+.name {
+  display: block;
+  color: #1f170f;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.stats {
+  display: flex;
+  gap: 24rpx;
+}
+
+.stat-value {
+  display: block;
+  color: #8f5d18;
+  font-size: 36rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.stat-label {
+  display: block;
+  color: #7d7162;
+  font-size: 20rpx;
+  text-align: center;
+}
+
+.ai {
+  margin-top: 24rpx;
+  padding: 28rpx;
+}
+
+.ai-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  color: #1f170f;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.unlock {
+  color: #9b6c24;
+  font-size: 22rpx;
+}
+
+.ask-row {
+  display: flex;
+  gap: 14rpx;
+}
+
+.question {
+  flex: 1;
+  min-height: 88rpx;
+  padding: 0 22rpx;
+  border-radius: 14rpx;
+  background: #fffaf0;
+  border: 2rpx solid rgba(142, 105, 43, 0.3);
+  color: #261c13;
+  font-size: 26rpx;
+}
+
+.ask-button {
+  width: 176rpx;
+  min-height: 88rpx;
+  border-radius: 14rpx;
+  background: #8f5d18;
+  color: #fffaf0;
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 88rpx;
+}
+
+.pay-button {
+  margin-top: 18rpx;
+}
+
+.answer {
+  margin-top: 22rpx;
+  padding: 24rpx;
+  border-radius: 14rpx;
+  background: rgba(143, 93, 24, 0.08);
+  color: #322519;
+  font-size: 26rpx;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.palace-list {
+  margin-top: 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.palace {
+  padding: 24rpx;
+}
+
+.palace-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 12rpx;
+}
+
+.palace-name {
+  color: #1f170f;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.palace-age {
+  color: #9b6c24;
+  font-size: 22rpx;
+}
+
+.stars {
+  color: #5d4d39;
+  font-size: 24rpx;
+  line-height: 1.7;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: 22rpx;
+  justify-content: center;
+}

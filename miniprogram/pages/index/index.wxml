@@ -1,0 +1,59 @@
+<view class="page index-page">
+  <view class="hero">
+    <text class="eyebrow">紫微斗数</text>
+    <text class="title">起紫微命盘</text>
+    <text class="muted subtitle">填写出生信息，生成命盘后可进行 AI 解读。</text>
+  </view>
+
+  <view class="panel form-panel">
+    <view class="field">
+      <text class="label">姓名（可选）</text>
+      <input class="input" value="{{form.name}}" data-key="name" bindinput="onInput" placeholder="请输入姓名" />
+    </view>
+
+    <view class="field">
+      <text class="label">出生日期（公历）</text>
+      <view class="picker-row">
+        <picker class="picker" range="{{years}}" value="{{yearIndex}}" data-key="year" bindchange="onPickerChange">
+          <view>{{form.year || '年份'}}</view>
+        </picker>
+        <picker class="picker" range="{{months}}" value="{{monthIndex}}" data-key="month" bindchange="onPickerChange">
+          <view>{{form.month || '月份'}}</view>
+        </picker>
+        <picker class="picker" range="{{days}}" value="{{dayIndex}}" data-key="day" bindchange="onPickerChange">
+          <view>{{form.day || '日期'}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="label">出生时间（北京时间）</text>
+      <view class="picker-row">
+        <picker class="picker" range="{{hours}}" value="{{hourIndex}}" data-key="clockHour" bindchange="onPickerChange">
+          <view>{{form.clockHour}} 点</view>
+        </picker>
+        <picker class="picker" range="{{minutes}}" value="{{minuteIndex}}" data-key="clockMinute" bindchange="onPickerChange">
+          <view>{{form.clockMinute}} 分</view>
+        </picker>
+      </view>
+      <text class="hint">当前按 {{branchName}} 时起盘</text>
+    </view>
+
+    <view class="field">
+      <text class="label">性别</text>
+      <view class="gender-row">
+        <button class="gender {{form.gender === 'male' ? 'active' : ''}}" data-gender="male" bindtap="onGenderTap">男</button>
+        <button class="gender {{form.gender === 'female' ? 'active' : ''}}" data-gender="female" bindtap="onGenderTap">女</button>
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="label">出生地（可选）</text>
+      <input class="input" value="{{form.city}}" data-key="city" bindinput="onInput" placeholder="例如：杭州" />
+    </view>
+
+    <button class="primary-button submit" loading="{{loading}}" disabled="{{loading}}" bindtap="onSubmit">
+      {{loading ? '命盘生成中' : '立即起盘'}}
+    </button>
+  </view>
+</view>
