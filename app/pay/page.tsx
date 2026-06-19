@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { setUnlocked } from '@/lib/usage';
 
-type PayStep = 'loading' | 'redirecting' | 'checking' | 'paid' | 'error';
+type PayStep = 'loading' | 'ready' | 'redirecting' | 'checking' | 'paid' | 'error';
 
 interface PayCreateResponse {
   success: boolean;
@@ -29,6 +29,7 @@ export default function PayPage() {
   const [outTradeNo, setOutTradeNo] = useState('');
   const [amount, setAmount] = useState('2.00');
   const [subject, setSubject] = useState('紫微AI解读永久解锁');
+  const [payForm, setPayForm] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -65,6 +66,7 @@ export default function PayPage() {
   const createOrder = async () => {
     setStep('loading');
     setErrorMsg('');
+    setPayForm('');
 
     try {
       const response = await fetch('/api/pay/create', { method: 'POST' });
@@ -85,24 +87,45 @@ export default function PayPage() {
 
       if (!data.payForm) throw new Error('未获取到支付宝支付表单');
 
-      setStep('redirecting');
-      submitAlipayForm(data.payForm);
-      startPolling(data.outTradeNo);
+      setPayForm(data.payForm);
+      setStep('ready');
     } catch (error) {
       setErrorMsg(error instanceof Error ? error.message : '创建订单失败');
       setStep('error');
     }
   };
 
+  const handlePay = () => {
+    if (!payForm || !outTradeNo) {
+      setErrorMsg('订单尚未准备好，请重新创建订单');
+      setStep('error');
+      return;
+    }
+
+    try {
+      setStep('redirecting');
+      startPolling(outTradeNo);
+      submitAlipayForm(payForm);
+    } catch (error) {
+      stopPolling();
+      setErrorMsg(error instanceof Error ? error.message : '跳转支付宝失败');
+      setStep('error');
+    }
+  };
+
   const submitAlipayForm = (formHtml: string) => {
+    const oldContainer = document.getElementById('alipay-submit-container');
+    if (oldContainer) oldContainer.remove();
+
     const container = document.createElement('div');
+    container.id = 'alipay-submit-container';
     container.style.display = 'none';
     document.body.appendChild(container);
     container.innerHTML = formHtml;
 
     const form = container.querySelector('form');
     if (!form) {
-      document.body.removeChild(container);
+      container.remove();
       throw new Error('支付宝表单解析失败');
     }
 
@@ -140,7 +163,7 @@ export default function PayPage() {
     }
   };
 
-  const disabled = step === 'loading' || step === 'redirecting';
+  const busy = step === 'loading' || step === 'redirecting';
 
   return (
     <main style={styles.page}>
@@ -150,7 +173,18 @@ export default function PayPage() {
         <div style={styles.price}>¥{amount}</div>
 
         {step === 'loading' && <p style={styles.muted}>正在创建订单...</p>}
+
+        {step === 'ready' && (
+          <>
+            <p style={styles.muted}>订单已创建，请点击按钮前往支付宝完成付款。</p>
+            <button style={styles.primaryButton} onClick={handlePay}>
+              前往支付宝支付
+            </button>
+          </>
+        )}
+
         {step === 'redirecting' && <p style={styles.muted}>正在跳转到支付宝收银台...</p>}
+
         {step === 'checking' && (
           <>
             <p style={styles.muted}>如果你已经完成付款，系统会自动确认到账。</p>
@@ -159,16 +193,18 @@ export default function PayPage() {
             </button>
           </>
         )}
+
         {step === 'paid' && (
           <>
             <p style={styles.success}>支付成功，AI 解读已解锁。</p>
             <a href="/chart" style={styles.primaryLink}>开始使用</a>
           </>
         )}
+
         {step === 'error' && (
           <>
             <p style={styles.error}>{errorMsg}</p>
-            <button style={styles.primaryButton} onClick={createOrder} disabled={disabled}>
+            <button style={styles.primaryButton} onClick={createOrder} disabled={busy}>
               重新创建订单
             </button>
           </>
