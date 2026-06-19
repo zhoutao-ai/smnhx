@@ -168,7 +168,7 @@ export default function PayPage() {
   return (
     <main style={styles.page}>
       <section style={styles.panel}>
-        <div style={styles.kicker}>支付宝安全支付</div>
+        <div style={styles.kicker}>支付宝手机 H5 支付</div>
         <h1 style={styles.title}>{subject}</h1>
         <div style={styles.price}>¥{amount}</div>
 
@@ -176,14 +176,14 @@ export default function PayPage() {
 
         {step === 'ready' && (
           <>
-            <p style={styles.muted}>订单已创建，请点击按钮前往支付宝完成付款。</p>
+            <p style={styles.muted}>订单已创建，请在手机浏览器中打开支付宝完成付款。</p>
             <button style={styles.primaryButton} onClick={handlePay}>
-              前往支付宝支付
+              打开支付宝支付
             </button>
           </>
         )}
 
-        {step === 'redirecting' && <p style={styles.muted}>正在跳转到支付宝收银台...</p>}
+        {step === 'redirecting' && <p style={styles.muted}>正在打开支付宝 H5 收银台...</p>}
 
         {step === 'checking' && (
           <>

@@ -30,13 +30,13 @@ function getClient(): AlipaySdk | null {
   return client;
 }
 
-export interface CreateAlipayPagePayResult {
+export interface CreateAlipayWapPayResult {
   ok: boolean;
   payForm?: string;
   error?: string;
 }
 
-export function createAlipayPagePay(outTradeNo: string): CreateAlipayPagePayResult {
+export function createAlipayPagePay(outTradeNo: string): CreateAlipayWapPayResult {
   const alipay = getClient();
   if (!alipay) return { ok: false, error: '支付宝未配置' };
 
@@ -44,15 +44,16 @@ export function createAlipayPagePay(outTradeNo: string): CreateAlipayPagePayResu
   const product = getPaymentProduct();
 
   try {
-    const payForm = alipay.pageExecute('alipay.trade.page.pay', 'POST', {
+    const payForm = alipay.pageExecute('alipay.trade.wap.pay', 'POST', {
       bizContent: {
         out_trade_no: outTradeNo,
-        product_code: 'FAST_INSTANT_TRADE_PAY',
+        product_code: 'QUICK_WAP_WAY',
         total_amount: product.amount,
         subject: product.subject,
       },
       returnUrl: `${siteUrl}/pay?outTradeNo=${encodeURIComponent(outTradeNo)}`,
       notifyUrl: `${siteUrl}/api/pay/notify`,
+      quitUrl: `${siteUrl}/pay`,
     });
 
     return { ok: true, payForm };
