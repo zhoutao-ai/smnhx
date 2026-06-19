@@ -449,7 +449,7 @@ ${selectedSiHua.starName}化${selectedSiHua.siHua}落在【${palaceName}】，�
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
-            placeholder="输入你想问的"
+            placeholder="追问：我的感情和事业如何走向"
             disabled={loading}
             className="flex-1 rounded-lg px-3 py-2 text-[12px] focus:outline-none transition-all"
             style={{
