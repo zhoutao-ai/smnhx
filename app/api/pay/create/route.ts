@@ -1,43 +1,53 @@
-/**
- * POST /api/pay/create
- *
- * 创建支付宝电脑网站支付订单，返回签名后的 HTML 表单。
- * 前端渲染表单后自动提交，跳转支付宝收银台。
- */
-
-import { NextRequest, NextResponse } from 'next/server';
-import { createPagePay, generateOutTradeNo, isMockPay } from '@/lib/alipay';
+import { NextResponse } from 'next/server';
+import { createAlipayPagePay } from '@/lib/payment/alipay';
+import { getPaymentProduct, getSiteUrl, isMockPay, isPayEnabled } from '@/lib/payment/config';
+import { createPaymentOrder, generateOutTradeNo, markPaymentPaid } from '@/lib/payment/orders';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
+  if (!isPayEnabled()) {
+    return NextResponse.json({ success: false, error: '支付功能暂未开放' }, { status: 403 });
+  }
+
+  const product = getPaymentProduct();
   const outTradeNo = generateOutTradeNo();
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://zwdssm.top';
 
-  // Mock 模式
-  if (isMockPay()) {
+  try {
+    await createPaymentOrder(outTradeNo, product);
+
+    if (isMockPay()) {
+      await markPaymentPaid({
+        outTradeNo,
+        tradeNo: `MOCK_${outTradeNo}`,
+        totalAmount: product.amount,
+      });
+
+      return NextResponse.json({
+        success: true,
+        mock: true,
+        outTradeNo,
+        amount: product.amount,
+        subject: product.subject,
+        payUrl: `${getSiteUrl()}/pay?outTradeNo=${encodeURIComponent(outTradeNo)}`,
+      });
+    }
+
+    const result = createAlipayPagePay(outTradeNo);
+    if (!result.ok || !result.payForm) {
+      return NextResponse.json({ success: false, error: result.error ?? '创建支付订单失败' }, { status: 500 });
+    }
+
     return NextResponse.json({
       success: true,
-      mock: true,
       outTradeNo,
-      payUrl: `${baseUrl}/pay?mock=paid&outTradeNo=${outTradeNo}`,
-    });
-  }
-
-  // 真实支付
-  const returnUrl = `${baseUrl}/pay?outTradeNo=${outTradeNo}`;
-  const notifyUrl = `${baseUrl}/api/pay/notify`;
-
-  const result = createPagePay(outTradeNo, '2.00', '紫微AI解读·永久解锁', returnUrl, notifyUrl);
-
-  if (result.success) {
-    return NextResponse.json({
-      success: true,
+      amount: product.amount,
+      subject: product.subject,
       payForm: result.payForm,
-      outTradeNo: result.outTradeNo,
     });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '创建支付订单失败';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
-
-  return NextResponse.json({ success: false, error: result.error }, { status: 500 });
 }

@@ -1,61 +1,59 @@
-/**
- * POST /api/pay/notify
- *
- * 支付宝异步通知接收端点。
- * 支付宝支付完成后，服务端 POST 到此 URL 通知支付结果。
- * 这是唯一可信的支付确认方式（用户可能关闭浏览器不触发同步回调）。
- *
- * 参考：https://opendocs.alipay.com/open/270/105902
- */
-
-import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@/lib/db/index';
-import { verifyNotifySign, isMockPay } from '@/lib/alipay';
+import { NextRequest } from 'next/server';
+import { verifyAlipayNotify } from '@/lib/payment/alipay';
+import { getPaymentProduct, isMockPay } from '@/lib/payment/config';
+import { getPaymentOrder, isPaidStatus, markPaymentFailed, markPaymentPaid } from '@/lib/payment/orders';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
-  // Mock 模式：不处理
-  if (isMockPay()) {
-    return new Response('success');
-  }
+  if (isMockPay()) return new Response('success');
 
   try {
-    // 支付宝 POST 的是 application/x-www-form-urlencoded
-    const body = await request.formData();
+    const form = await request.formData();
     const params: Record<string, string> = {};
-    body.forEach((v, k) => { params[k] = v.toString(); });
+    form.forEach((value, key) => {
+      params[key] = String(value);
+    });
 
-    // 验签
-    const verified = verifyNotifySign(params);
-    if (!verified) {
-      console.error('[pay:notify] 验签失败');
+    if (!verifyAlipayNotify(params)) {
+      console.error('[pay:notify] invalid alipay signature');
       return new Response('fail');
     }
 
-    // 检查交易状态
-    const tradeStatus = verified.trade_status;
-    if (tradeStatus !== 'TRADE_SUCCESS' && tradeStatus !== 'TRADE_FINISHED') {
-      console.log('[pay:notify] 交易未完成:', tradeStatus);
-      return new Response('success'); // 不重试，等下次通知
+    const outTradeNo = params.out_trade_no;
+    if (!outTradeNo) return new Response('fail');
+
+    const order = await getPaymentOrder(outTradeNo);
+    if (!order) {
+      console.error('[pay:notify] unknown order', outTradeNo);
+      return new Response('fail');
     }
 
-    const outTradeNo = verified.out_trade_no;
-    const tradeNo = verified.trade_no;
-    const totalAmount = verified.total_amount;
+    const product = getPaymentProduct();
+    if (params.total_amount && Number(params.total_amount) !== Number(product.amount)) {
+      console.error('[pay:notify] amount mismatch', outTradeNo, params.total_amount);
+      await markPaymentFailed(outTradeNo);
+      return new Response('fail');
+    }
 
-    // 记录支付信息
-    await sql`
-      INSERT INTO payments (out_trade_no, trade_no, total_amount, status, created_at)
-      VALUES (${outTradeNo}, ${tradeNo}, ${totalAmount}, 'paid', NOW())
-      ON CONFLICT (out_trade_no) DO UPDATE SET status = 'paid', trade_no = ${tradeNo}
-    `.catch(e => console.error('[pay:notify] DB写入失败:', e));
+    if (!isPaidStatus(params.trade_status)) {
+      return new Response('success');
+    }
 
-    console.log(`[pay:notify] ✅ 到账: ${outTradeNo} ${totalAmount}元`);
+    await markPaymentPaid({
+      outTradeNo,
+      tradeNo: params.trade_no,
+      totalAmount: params.total_amount,
+      buyerId: params.buyer_id,
+      buyerLogonId: params.buyer_logon_id,
+      rawNotify: params,
+    });
+
+    console.log('[pay:notify] paid', outTradeNo);
     return new Response('success');
-  } catch (e) {
-    console.error('[pay:notify] 异常:', e);
+  } catch (error) {
+    console.error('[pay:notify] failed', error);
     return new Response('fail');
   }
 }

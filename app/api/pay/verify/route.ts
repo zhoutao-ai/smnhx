@@ -1,41 +1,63 @@
-/**
- * POST /api/pay/verify
- *
- * 查询订单支付状态。前端轮询 / 手动点击验证。
- */
-
 import { NextRequest, NextResponse } from 'next/server';
-import { queryPay, isMockPay } from '@/lib/alipay';
+import { queryAlipayTrade } from '@/lib/payment/alipay';
+import { isMockPay } from '@/lib/payment/config';
+import { getPaymentOrder, markPaymentPaid } from '@/lib/payment/orders';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
-  const outTradeNo: string = body.outTradeNo ?? '';
-
-  // Mock
-  if (isMockPay()) {
-    return NextResponse.json({
-      success: true,
-      paid: body.manual === true,
-      mock: true,
-    });
-  }
+  const outTradeNo = typeof body.outTradeNo === 'string' ? body.outTradeNo.trim() : '';
 
   if (!outTradeNo) {
     return NextResponse.json({ success: false, paid: false, error: '缺少订单号' }, { status: 400 });
   }
 
-  const result = await queryPay(outTradeNo);
+  try {
+    const order = await getPaymentOrder(outTradeNo);
+    if (!order) {
+      return NextResponse.json({ success: false, paid: false, error: '订单不存在' }, { status: 404 });
+    }
 
-  if (result.success) {
+    if (order.status === 'paid') {
+      return NextResponse.json({
+        success: true,
+        paid: true,
+        status: order.status,
+        outTradeNo,
+        tradeNo: order.trade_no,
+      });
+    }
+
+    if (isMockPay()) {
+      return NextResponse.json({ success: true, paid: false, mock: true, status: order.status, outTradeNo });
+    }
+
+    const result = await queryAlipayTrade(outTradeNo);
+    if (!result.ok) {
+      return NextResponse.json({ success: false, paid: false, error: result.error }, { status: 502 });
+    }
+
+    if (result.paid) {
+      await markPaymentPaid({
+        outTradeNo,
+        tradeNo: result.tradeNo,
+        totalAmount: result.totalAmount,
+        buyerId: result.buyerId,
+        buyerLogonId: result.buyerLogonId,
+      });
+    }
+
     return NextResponse.json({
       success: true,
       paid: result.paid,
+      status: result.paid ? 'paid' : order.status,
       tradeStatus: result.tradeStatus,
+      outTradeNo,
     });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '查询支付状态失败';
+    return NextResponse.json({ success: false, paid: false, error: message }, { status: 500 });
   }
-
-  return NextResponse.json({ success: false, paid: false, error: result.error }, { status: 500 });
 }

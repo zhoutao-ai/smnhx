@@ -6,6 +6,8 @@ node_modules/
 dist/
 *.tsbuildinfo
 data/
+!lib/classics/data/
+!lib/classics/data/*.ts
 .DS_Store
 
 .vercel
