@@ -290,11 +290,11 @@ export default function HemingPage() {
           )}
         </div>
 
-        {/* ═══ 针对合盘的追问聊天框（仅分析完成后显示）═══════════ */}
+        {/* ═══ 针对合盘的 ai 解读命盘聊天框（仅分析完成后显示）═══════════ */}
         {analysis && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '16px' }}>
             <div style={{ fontSize: '11px', letterSpacing: '0.2em', color: 'var(--tx-3)', marginBottom: '4px' }}>
-              针对此次合盘继续追问
+              针对此次合盘 ai解读命盘
             </div>
 
             {/* 快捷问题 */}
@@ -327,14 +327,14 @@ export default function HemingPage() {
               ))}
             </div>
 
-            {/* 输入框 + 追问按钮 */}
+            {/* 输入框 + ai解读命盘按钮 */}
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
                 type="text"
                 value={question}
                 onChange={e => setQuestion(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !analyzing) runAnalysis(question || undefined); }}
-                placeholder="继续追问，如：哪几年是两人感情关键期？"
+                placeholder="ai解读命盘，如：哪几年是两人感情关键期？"
                 disabled={analyzing}
                 className="input-base"
                 style={{ fontSize: '13px', flex: 1 }}
@@ -351,7 +351,7 @@ export default function HemingPage() {
                   transition: 'all 0.15s', whiteSpace: 'nowrap',
                 }}
               >
-                {analyzing ? '分析中…' : '继续追问'}
+                {analyzing ? '分析中…' : 'ai解读命盘'}
               </button>
             </div>
           </div>

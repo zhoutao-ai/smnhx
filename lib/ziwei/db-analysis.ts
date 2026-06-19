@@ -2245,7 +2245,7 @@ export function getTopicAnalysis(
 
   suggestions[topic].forEach(s => lines.push(`→ ${s}`));
   lines.push('');
-  lines.push(`**【继续深度追问】**`);
+  lines.push(`**【ai解读命盘】**`);
   lines.push(`可在下方输入具体问题，如："今年${TOPIC_LABEL[topic]}有何重大变化？""当前大限对${TOPIC_LABEL[topic]}影响如何？"——AI 将结合完整命盘为你进行个性化解读。`);
 
   // 过滤与当前性别无关的内容（男命不显示女命专属句，女命不显示男命专属句）
