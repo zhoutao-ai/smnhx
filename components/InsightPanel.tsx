@@ -449,7 +449,7 @@ ${selectedSiHua.starName}化${selectedSiHua.siHua}落在【${palaceName}】，�
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
-            placeholder="ai解读命盘，如：今年适合换工作吗？"
+            placeholder="输入你想问的"
             disabled={loading}
             className="flex-1 rounded-lg px-3 py-2 text-[12px] focus:outline-none transition-all"
             style={{
@@ -461,15 +461,20 @@ ${selectedSiHua.starName}化${selectedSiHua.siHua}落在【${palaceName}】，�
           <button
             onClick={handleSend}
             disabled={loading || !input.trim()}
-            className="px-5 py-2 rounded-lg text-[12px] font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            className="rounded-lg font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             style={{
               background: 'var(--ac)',
               border: 'none',
               color: '#fff',
               letterSpacing: '0.05em',
+              minWidth: '88px',
+              height: '38px',
+              padding: '0 16px',
+              fontSize: '14px',
+              whiteSpace: 'nowrap',
             }}
           >
-            {loading ? '…' : 'ai解读命盘'}
+            {loading ? '…' : 'AI解读'}
           </button>
         </div>
       </div>
