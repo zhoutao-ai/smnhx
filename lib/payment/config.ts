@@ -49,15 +49,28 @@ export function getAlipayConfig(): AlipayConfig | null {
 
   return {
     appId,
-    privateKey: normalizePem(privateKey),
-    alipayPublicKey: normalizePem(alipayPublicKey),
+    privateKey: normalizePrivateKey(privateKey, keyType),
+    alipayPublicKey: normalizePublicKey(alipayPublicKey),
     keyType,
     sandbox: process.env.ALIPAY_SANDBOX === 'true',
   };
 }
 
-function normalizePem(value: string): string {
-  return value.replace(/\\n/g, '\n').trim();
+function normalizePrivateKey(value: string, keyType: 'PKCS1' | 'PKCS8'): string {
+  return normalizePem(value, keyType === 'PKCS8' ? 'PRIVATE KEY' : 'RSA PRIVATE KEY');
+}
+
+function normalizePublicKey(value: string): string {
+  return normalizePem(value, 'PUBLIC KEY');
+}
+
+function normalizePem(value: string, label: string): string {
+  const normalized = value.replace(/\\n/g, '\n').trim();
+  if (normalized.includes('-----BEGIN')) return normalized;
+
+  const compact = normalized.replace(/\s+/g, '');
+  const lines = compact.match(/.{1,64}/g)?.join('\n') ?? compact;
+  return `-----BEGIN ${label}-----\n${lines}\n-----END ${label}-----`;
 }
 
 function normalizeAmount(value: string): string {
